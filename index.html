@@ -52,6 +52,25 @@ textarea{resize:vertical;line-height:1.8}
   clip-path:polygon(0 0,calc(100% - var(--c)) 0,100% var(--c),100% 100%,var(--c) 100%,0 calc(100% - var(--c)))}
 .cut>*{position:relative;z-index:1}
 
+/* ================= фоновая сцена ================= */
+#bgfx{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+#bgfx .w{position:absolute;font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  color:rgba(212,175,55,.03);filter:blur(5px);white-space:nowrap;user-select:none;line-height:1}
+#bgfx .w.o{color:transparent;-webkit-text-stroke:1.5px rgba(212,175,55,.04)}
+#bgfx .w1{font-size:21vw;top:2%;left:-4%;filter:blur(7px);animation:bgdrift 52s ease-in-out infinite}
+#bgfx .w2{font-size:15vw;bottom:-3%;right:-3%;animation:bgdrift 64s ease-in-out infinite reverse}
+#bgfx .w3{font-size:7.5vw;top:50%;right:-2.5%;transform:rotate(90deg);transform-origin:right top;
+  -webkit-text-stroke-color:rgba(245,241,230,.03);animation:none}
+#bgfx .w4{font-size:13vw;top:38%;left:38%;filter:blur(9px);color:rgba(212,175,55,.024);animation:bgdrift 45s ease-in-out infinite}
+#bgfx .w5{font-size:4.5vw;top:13%;right:6%;animation:bgdrift 58s ease-in-out infinite reverse}
+#bgfx .w6{font-size:6vw;bottom:9%;left:4%;filter:blur(6px);color:rgba(245,241,230,.024);animation:bgdrift 49s ease-in-out infinite}
+#bgfx .blob{position:absolute;border-radius:50%;filter:blur(95px)}
+#bgfx .b1{width:640px;height:640px;top:-220px;left:26%;background:radial-gradient(circle,rgba(212,175,55,.14),transparent 65%);animation:bgdrift 38s ease-in-out infinite}
+#bgfx .b2{width:560px;height:560px;bottom:-240px;right:-120px;background:radial-gradient(circle,rgba(45,212,191,.08),transparent 65%);animation:bgdrift 47s ease-in-out infinite reverse}
+#bgfx .b3{width:420px;height:420px;bottom:-140px;left:-140px;background:radial-gradient(circle,rgba(212,175,55,.08),transparent 65%);animation:bgdrift 56s ease-in-out infinite}
+@keyframes bgdrift{0%,100%{translate:0 0}50%{translate:-36px 24px}}
+.wrap{position:relative;z-index:1}
+
 /* ================= topbar ================= */
 .topbar{position:sticky;top:0;z-index:10;padding:9px 20px;
   background:rgba(8,7,6,.88);backdrop-filter:blur(12px)}
@@ -424,6 +443,17 @@ canvas.confetti{position:fixed;inset:0;z-index:100;pointer-events:none}
 </style>
 </head>
 <body>
+<div id="bgfx" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <span class="w w1">Dubai</span>
+  <span class="w w2 o">Project</span>
+  <span class="w w3 o">Champion</span>
+  <span class="w w4">VS</span>
+  <span class="w w5 o">Grand Final</span>
+  <span class="w w6">GG WP</span>
+</div>
 <div class="topbar" id="topbar"></div>
 <div class="wrap" id="app"></div>
 <div class="hints hidden" id="hints"></div>
