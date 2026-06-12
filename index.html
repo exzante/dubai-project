@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dubai Project</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080706;
+  --panel:#100E0B; --panel2:#161410; --panel3:#201C15;
+  --line:#27221A; --line2:#3D3526;
+  --text:#F5F1E6; --muted:#9C957F; --dim:#5F594A;
+  --gold:#D4AF37; --gold2:#F2DA8C; --gold3:#FFF3CE; --gold-deep:#8A6F1F;
+  --gold-soft:rgba(212,175,55,.12);
+  --teal:#2DD4BF; --teal-soft:rgba(45,212,191,.12);
+  --green:#3DDC97; --green-soft:rgba(61,220,151,.10);
+  --red:#FF5C5C;
+  --disp:'Oswald','Arial Narrow',sans-serif;
+  --body:'Inter','Segoe UI',system-ui,sans-serif;
+  --metal:linear-gradient(105deg,#8A6F1F 0%,#D4AF37 25%,#FFF3CE 50%,#D4AF37 75%,#8A6F1F 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(1100px 520px at 50% -200px, rgba(212,175,55,.09), transparent 65%),
+    radial-gradient(800px 400px at 85% 110%, rgba(212,175,55,.04), transparent 60%),
+    var(--bg);
+  color:var(--text); font-family:var(--body); font-size:14px; line-height:1.5;
+}
+::selection{background:rgba(212,175,55,.45)}
+::-webkit-scrollbar{height:9px;width:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:0;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-deep)}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+button:disabled{cursor:default;opacity:.5}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+input,textarea,select{font-family:inherit;font-size:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line2);border-radius:3px;padding:9px 12px;transition:border-color .15s}
+input:hover,textarea:hover,select:hover{border-color:var(--gold-deep)}
+input:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;line-height:1.8}
+::placeholder{color:var(--dim)}
+
+/* ===== фирменная геометрия: срезанные углы ===== */
+.cut{--c:12px;position:relative;background:var(--bl,var(--line));
+  clip-path:polygon(0 0,calc(100% - var(--c)) 0,100% var(--c),100% 100%,var(--c) 100%,0 calc(100% - var(--c)))}
+.cut::before{content:'';position:absolute;inset:1px;background:var(--bg2,var(--panel));z-index:0;pointer-events:none;
+  clip-path:polygon(0 0,calc(100% - var(--c)) 0,100% var(--c),100% 100%,var(--c) 100%,0 calc(100% - var(--c)))}
+.cut>*{position:relative;z-index:1}
+
+/* ================= topbar ================= */
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:9px 20px;
+  background:rgba(8,7,6,.88);backdrop-filter:blur(12px)}
+.topbar::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(212,175,55,.45) 30%,rgba(212,175,55,.45) 70%,transparent)}
+.brand{display:flex;align-items:center;gap:11px}
+.brand .cup{width:34px;height:32px;display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:14px;color:#161204;
+  background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold-deep));
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}
+.brand .bt{font-family:var(--disp);font-weight:600;font-size:14.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);line-height:1.15}
+.brand .bt small{display:block;font-family:var(--body);font-size:8.5px;font-weight:700;color:var(--dim);letter-spacing:.3em;text-transform:uppercase}
+.topbar .tname{font-family:var(--disp);font-weight:500;font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:24vw}
+.topbar .spacer{flex:1}
+.badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--disp);font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--line2);padding:3px 11px;white-space:nowrap;background:var(--panel)}
+.prog{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-weight:700}
+.prog .bar{width:88px;height:4px;background:var(--panel3);overflow:hidden}
+.prog .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold2));transition:width .4s ease}
+.prog.full .bar i{background:linear-gradient(90deg,#1E8E68,var(--green))}
+
+/* ================= buttons ================= */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:var(--panel3);color:var(--text);
+  font-family:var(--disp);font-weight:500;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;transition:all .15s;white-space:nowrap;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.btn:hover{background:var(--line2);transform:translateY(-1px)}
+.btn:active{transform:none}
+.btn.primary{background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold-deep));color:#161204;font-weight:600;
+  filter:drop-shadow(0 4px 14px rgba(212,175,55,.3))}
+.btn.primary:hover{filter:drop-shadow(0 6px 18px rgba(212,175,55,.5)) brightness(1.07)}
+.btn.danger{color:var(--red);background:rgba(255,92,92,.09)}
+.btn.danger:hover{background:rgba(255,92,92,.18)}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1px var(--line2)}
+.btn.ghost:hover{box-shadow:inset 0 0 0 1px var(--gold-deep);background:var(--panel2)}
+.btn.sm{padding:5px 13px;font-size:11px}
+.btn.icon{padding:6px 11px}
+
+.wrap{max-width:1560px;margin:0 auto;padding:24px 22px 92px}
+#app.anim > *{animation:fadeUp .45s cubic-bezier(.2,.7,.3,1) both}
+#app.anim > *:nth-child(2){animation-delay:.06s}
+#app.anim > *:nth-child(3){animation-delay:.12s}
+#app.anim > *:nth-child(4){animation-delay:.18s}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ================= avatars ================= */
+.av{display:inline-grid;place-items:center;width:25px;height:25px;border-radius:6px;flex-shrink:0;
+  font-size:9.5px;font-weight:800;color:#fff;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.4);user-select:none}
+.av.ghosted{background:transparent !important;border:1.5px dashed var(--line2);color:var(--dim)}
+.av.lg{width:52px;height:52px;border-radius:12px;font-size:19px}
+
+/* ================= home / hero ================= */
+.hero{position:relative;margin:26px 0 0;text-align:center;padding:34px 0 64px;overflow:hidden}
+.hero .skyline{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);width:min(1240px,110%);height:auto;opacity:.5;pointer-events:none;
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 55%);mask-image:linear-gradient(180deg,transparent 0%,#000 55%)}
+.hero .eyebrow{font-family:var(--disp);font-size:11px;font-weight:500;letter-spacing:.55em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.hero h1{font-family:var(--disp);font-weight:700;font-size:clamp(44px,8vw,92px);letter-spacing:.05em;line-height:1.02;text-transform:uppercase;
+  background:var(--metal);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shine 6s linear infinite;filter:drop-shadow(0 4px 24px rgba(212,175,55,.18))}
+@keyframes shine{to{background-position:220% center}}
+.hero .rule{display:flex;align-items:center;gap:14px;justify-content:center;margin:16px auto 12px;max-width:420px}
+.hero .rule::before,.hero .rule::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-deep))}
+.hero .rule::after{background:linear-gradient(90deg,var(--gold-deep),transparent)}
+.hero .rule span{font-family:var(--disp);font-size:12px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+.hero p{color:var(--muted);margin:0 auto;max-width:480px;font-size:14.5px;position:relative}
+.statrow{display:flex;justify-content:center;gap:14px;margin:8px 0 6px;flex-wrap:wrap}
+.stat{--c:10px;--bl:var(--line);display:flex;flex-direction:column;align-items:center;gap:1px;padding:12px 30px}
+.stat b{font-family:var(--disp);font-weight:600;font-size:22px;color:var(--gold2)}
+.stat span{font-size:9.5px;color:var(--muted);font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+.tlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px;margin-top:26px}
+.tcard{--c:14px;--bl:var(--line);padding:19px;display:flex;flex-direction:column;gap:9px;transition:transform .2s}
+.tcard:hover{--bl:linear-gradient(135deg,var(--gold),var(--line) 60%);transform:translateY(-3px)}
+.tcard .tt{font-family:var(--disp);font-weight:600;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding-right:34px}
+.tcard .fico{position:absolute;top:16px;right:18px;font-size:17px;opacity:.9}
+.tcard .meta{color:var(--muted);font-size:12.5px}
+.tcard .champline{color:var(--gold2);font-weight:700;font-size:13.5px}
+.tcard .pbar{height:4px;background:var(--panel3);overflow:hidden;margin-top:2px}
+.tcard .pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold2))}
+.tcard .pbar.full i{background:linear-gradient(90deg,#1E8E68,var(--green))}
+.tcard .row{display:flex;gap:8px;margin-top:8px}
+.empty{border:1.5px dashed var(--line2);padding:58px 30px;text-align:center;color:var(--muted);margin-top:28px;font-size:15px}
+.empty .big{font-size:42px;display:block;margin-bottom:14px}
+
+/* ================= create form ================= */
+.form{--c:16px;--bl:var(--line2);max-width:680px;padding:32px 34px;margin:24px auto;filter:drop-shadow(0 20px 50px rgba(0,0,0,.45))}
+.form h2{font-family:var(--disp);font-weight:600;font-size:20px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:24px;color:var(--gold2)}
+.frow{margin-bottom:20px}
+.frow .lbl{display:block;font-family:var(--disp);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.26em;color:var(--muted);margin-bottom:9px}
+.frow input[type=text],.frow textarea,.frow select{width:100%}
+.fmt3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.fmtopt{position:relative}
+.fmtopt input{position:absolute;opacity:0}
+.fmtopt .card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px 13px;border:1px solid var(--line2);
+  text-align:center;cursor:pointer;font-family:var(--disp);font-weight:500;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+  transition:all .15s;background:var(--panel2);
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.fmtopt .card:hover{border-color:var(--gold-deep)}
+.fmtopt small{font-family:var(--body);font-weight:500;color:var(--muted);font-size:10.5px;line-height:1.4;text-transform:none;letter-spacing:0}
+.fmtopt svg .ln{stroke:var(--muted);stroke-width:2;fill:none}
+.fmtopt svg .dt{fill:var(--muted)}
+.fmtopt input:checked + .card{border-color:var(--gold);background:var(--gold-soft);color:var(--gold2)}
+.fmtopt input:checked + .card svg .ln{stroke:var(--gold)}
+.fmtopt input:checked + .card svg .dt{fill:var(--gold)}
+.fmtopt input:focus-visible + .card{outline:2px solid var(--gold);outline-offset:2px}
+.pcount{font-size:12px;color:var(--muted);margin-top:8px;min-height:18px}
+.pcount b{color:var(--gold2)}
+.chk{display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;font-weight:500}
+.chk input[type=checkbox]{accent-color:var(--gold);width:17px;height:17px;cursor:pointer}
+.inline{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.hidden{display:none !important}
+
+/* ================= bracket ================= */
+.bseclbl{font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold2);margin:32px 0 14px;
+  display:flex;align-items:center;gap:14px}
+.bseclbl .tag{font-family:var(--body);font-size:10px;color:var(--muted);letter-spacing:.08em;border:1px solid var(--line2);padding:2px 10px;font-weight:600;text-transform:none}
+.bseclbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-deep),transparent 60%)}
+.bsec{position:relative;overflow:auto;max-height:calc(100vh - 215px);min-height:120px;padding:10px 4px 22px;cursor:grab;overscroll-behavior:contain}
+.bsec.panning{cursor:grabbing}
+.bsec.panning *{cursor:grabbing !important}
+.zoomw{min-width:max-content;position:relative}
+.cols{display:flex;gap:58px;min-width:max-content;align-items:stretch}
+.col{display:flex;flex-direction:column;width:252px;flex-shrink:0}
+.colhead{display:flex;align-items:center;justify-content:center;gap:9px;padding-bottom:13px}
+.colhead .rname{font-family:var(--disp);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.3em;color:var(--muted)}
+.colhead .rcnt{font-size:10px;font-weight:700;color:var(--dim);background:var(--panel2);border:1px solid var(--line);padding:1px 8px}
+.colstack{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:16px}
+
+.match{--c:12px;--bl:var(--line);z-index:1;user-select:none;transition:opacity .2s,transform .15s}
+.match.ready{--bl:linear-gradient(135deg,rgba(61,220,151,.65),var(--line) 70%);--bg2:linear-gradient(135deg,rgba(61,220,151,.06),var(--panel) 55%)}
+.match.auto{opacity:.35}
+.match.auto:hover{opacity:.9}
+.match.champ{--bl:linear-gradient(135deg,var(--gold2),var(--gold-deep));--bg2:linear-gradient(135deg,rgba(212,175,55,.07),var(--panel) 60%);
+  filter:drop-shadow(0 0 12px rgba(212,175,55,.22))}
+.mhead{display:flex;align-items:center;gap:7px;padding:6px 12px 0;font-family:var(--disp);font-size:9.5px;font-weight:500;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);min-height:19px}
+.mhead .sp{flex:1}
+.livedot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(61,220,151,.5);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,151,.45)}70%{box-shadow:0 0 0 7px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
+.livetag{color:var(--green);letter-spacing:.3em}
+.donetick{color:var(--green);font-size:10px}
+.slot{display:flex;align-items:center;gap:9px;padding:9px 12px;transition:background .15s}
+.slot + .slot{border-top:1px solid var(--line)}
+.slot .pcol{flex:1;min-width:0;display:flex;flex-direction:column}
+.slot .pname{width:100%;min-width:0;text-align:left;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 0;touch-action:none}
+.slot .pmem{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-top:-2px}
+.slot.winner .pmem{color:rgba(212,175,55,.55)}
+.slot.draggable .pname{cursor:grab}
+.match.ready .slot .pname:hover{color:var(--green)}
+.slot.winner{background:linear-gradient(90deg,var(--gold-soft),transparent 75%);box-shadow:inset 3px 0 0 var(--gold)}
+.slot.winner .pname{color:var(--gold2);font-weight:800}
+.slot.winner .av{box-shadow:0 0 0 1.5px var(--gold)}
+.slot.loser .pname{color:var(--muted)}
+.slot .ghost{flex:1;color:var(--dim);font-size:12px;font-style:italic;display:flex;align-items:center;gap:9px}
+.slot .tools{display:none;gap:1px}
+.slot:hover .tools{display:inline-flex}
+.mini{color:var(--muted);padding:3px 6px;font-size:12.5px;line-height:1;transition:all .12s}
+.mini:hover{color:var(--gold2);background:var(--panel3)}
+.mini.del:hover{color:var(--red)}
+.mhead .mini:hover{color:var(--red)}
+.score{width:33px;text-align:center;font-variant-numeric:tabular-nums;font-weight:800;font-size:13px;
+  background:var(--panel3);padding:5px 0;flex-shrink:0;transition:transform .12s,background .12s;color:var(--muted);
+  clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
+.score:hover{background:var(--line2);transform:scale(1.1);color:var(--text)}
+.slot.winner .score{color:#161204;background:linear-gradient(135deg,var(--gold2),var(--gold))}
+svg.edges{position:absolute;top:0;left:0;pointer-events:none;z-index:0}
+svg.edges path{stroke:var(--line2);stroke-width:2;fill:none;opacity:.75}
+svg.edges path.champ{stroke:var(--gold);stroke-width:2.5;opacity:1;filter:drop-shadow(0 0 3px rgba(212,175,55,.55))}
+
+/* drag & drop */
+.dragghost{position:fixed;z-index:120;pointer-events:none;display:flex;align-items:center;gap:9px;
+  background:var(--panel3);border:1px solid var(--teal);padding:7px 15px 7px 8px;font-weight:700;font-size:13px;
+  filter:drop-shadow(0 14px 36px rgba(0,0,0,.6));transform:translate(-50%,-130%);
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}
+.slot.droptarget{box-shadow:inset 0 0 0 1.5px var(--teal)}
+.slot.dropover{background:var(--teal-soft);box-shadow:inset 0 0 0 2px var(--teal)}
+.gcard.droptarget{--bl:rgba(45,212,191,.55)}
+.gcard.dropover{--bl:var(--teal);--bg2:linear-gradient(180deg,var(--teal-soft),var(--panel))}
+body.dragging, body.dragging *{cursor:grabbing !important}
+tr[data-pid] td:nth-child(2){cursor:grab}
+
+/* ================= podium ================= */
+.podium{--c:16px;--bl:linear-gradient(135deg,var(--gold2),var(--gold-deep) 60%,var(--gold));--bg2:linear-gradient(135deg,#171204,var(--panel) 65%);
+  margin:6px 0 4px;padding:22px 30px;display:flex;align-items:center;gap:34px;flex-wrap:wrap;
+  filter:drop-shadow(0 10px 40px rgba(212,175,55,.12))}
+.podium::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 43%,rgba(255,243,206,.10) 50%,transparent 57%);
+  background-size:240% 100%;animation:sweep 3.6s ease-in-out infinite;pointer-events:none;z-index:2;
+  clip-path:polygon(0 0,calc(100% - var(--c)) 0,100% var(--c),100% 100%,var(--c) 100%,0 calc(100% - var(--c)))}
+@keyframes sweep{0%{background-position:160% 0}100%{background-position:-60% 0}}
+.podium .pchamp{display:flex;align-items:center;gap:16px}
+.podium .eyebrow{font-family:var(--disp);font-size:9.5px;font-weight:500;letter-spacing:.5em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:4px}
+.podium .champ-name{font-family:var(--disp);font-weight:700;font-size:clamp(22px,3vw,32px);letter-spacing:.06em;text-transform:uppercase;
+  background:var(--metal);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
+.podium .av.lg{box-shadow:0 0 0 2px var(--gold),0 0 0 5px rgba(212,175,55,.25),0 6px 20px rgba(212,175,55,.35)}
+.podium .minor{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13.5px}
+.podium .minor b{color:var(--text);font-weight:700}
+
+/* ================= coach ================= */
+.coach{--c:12px;--bl:rgba(45,212,191,.5);--bg2:linear-gradient(135deg,rgba(45,212,191,.07),var(--panel) 60%);
+  display:flex;align-items:flex-start;gap:14px;padding:15px 19px;margin-bottom:16px}
+.coach .ic{font-size:20px;margin-top:2px}
+.coach .tx{flex:1;font-size:13.5px}
+.coach .tx b{color:var(--teal)}
+.coach .tx .krow{margin-top:7px;display:flex;gap:15px;flex-wrap:wrap;color:var(--muted);font-size:12.5px}
+
+/* ================= groups ================= */
+.gwrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(355px,1fr));gap:18px;margin-top:16px}
+.gcard{--c:14px;--bl:var(--line);padding:17px 19px;transition:transform .15s}
+.gcard .ghead{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.gcard h3{font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2)}
+.gcard .gprog{font-size:10px;font-weight:700;color:var(--muted);background:var(--panel2);border:1px solid var(--line);padding:2px 9px}
+.gcard .ghead .sp{flex:1}
+table.stand{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:13px}
+table.stand th{font-family:var(--disp);font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.2em;color:var(--dim);text-align:left;padding:3px 7px;border-bottom:1px solid var(--line2)}
+table.stand td{padding:5px 7px;border-bottom:1px solid rgba(39,34,26,.6);font-variant-numeric:tabular-nums}
+table.stand td.pcell{display:flex;align-items:center;gap:8px}
+table.stand tr.q td{color:var(--gold2)}
+table.stand td.num,table.stand th.num{text-align:center;width:34px}
+.qbadge{font-family:var(--disp);font-size:8.5px;font-weight:600;letter-spacing:.1em;color:#161204;background:linear-gradient(135deg,var(--gold2),var(--gold));padding:1px 6px;margin-left:2px}
+.grow-tools{display:inline-flex;gap:1px;opacity:0;transition:opacity .12s;margin-left:auto}
+table.stand tr:hover .grow-tools{opacity:1}
+.gmatches{display:flex;flex-direction:column;gap:8px}
+.gm{--c:8px;--bl:var(--line);--bg2:var(--panel2);display:grid;grid-template-columns:1fr auto auto auto 1fr auto;align-items:center;gap:8px;user-select:none;
+  padding:7px 11px;transition:opacity .15s}
+.gm.ready{--bl:linear-gradient(90deg,rgba(61,220,151,.6),var(--line) 70%)}
+.gm .pname{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;font-weight:600;padding:2px 0}
+.gm .pname.right{text-align:right}
+.gm .pname.winner{color:var(--gold2);font-weight:800}
+.gm.ready .pname:hover:not(:disabled){color:var(--green)}
+.gm .vs{color:var(--dim);font-size:11px;font-weight:700}
+.gm .score{width:28px}
+.pophdr{--c:12px;--bl:var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 21px;margin-top:18px}
+.pophdr .tl{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold2)}
+.note{color:var(--muted);font-size:12.5px}
+
+/* ================= hints bar ================= */
+.hints{position:fixed;bottom:0;left:0;right:0;z-index:9;background:rgba(8,7,6,.92);backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);padding:8px 16px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;user-select:none}
+.hchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);background:var(--panel);
+  border:1px solid var(--line);padding:3px 12px;white-space:nowrap}
+.hchip b{color:var(--text);font-weight:700}
+.hchip .ic{color:var(--gold)}
+
+/* ================= режим проектора ================= */
+body.tv .topbar, body.tv .hints, body.tv .coach, body.tv .tools, body.tv .mhead .mini,
+body.tv .grow-tools, body.tv .pophdr .btn, body.tv .pophdr .chk, body.tv #roster{display:none !important}
+body.tv .wrap{max-width:none;padding:16px 24px 60px}
+body.tv .bsec{max-height:calc(100vh - 150px)}
+.tvbar{position:fixed;top:12px;right:16px;z-index:40;display:flex;gap:10px;align-items:center;
+  background:rgba(8,7,6,.85);border:1px solid var(--line2);padding:7px 14px;backdrop-filter:blur(8px);
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}
+.tvbar .tvname{font-family:var(--disp);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2)}
+
+/* ================= таймер ================= */
+.timerw{position:fixed;bottom:54px;left:50%;transform:translateX(-50%);z-index:27;--c:10px;--bl:var(--line2);--bg2:#13110C;
+  display:flex;align-items:center;gap:6px;padding:8px 14px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.5))}
+.timerw .tdisp{font-family:var(--disp);font-weight:600;font-size:22px;letter-spacing:.06em;color:var(--gold2);
+  font-variant-numeric:tabular-nums;min-width:78px;text-align:center}
+.timerw .tdisp.zero{color:var(--red);animation:tflash 1s steps(2) infinite}
+@keyframes tflash{50%{opacity:.25}}
+.timerw .mini{font-size:13px;padding:4px 8px}
+
+/* ================= статистика игрока ================= */
+.hofrow{cursor:pointer}
+.hofrow:hover .hofname{color:var(--gold2)}
+.pstat .bigrow{display:flex;gap:14px;margin:14px 0;flex-wrap:wrap}
+.pstat .pcard{--c:10px;--bl:var(--line);flex:1;min-width:90px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:10px 8px}
+.pstat .pcard b{font-family:var(--disp);font-weight:600;font-size:19px;color:var(--gold2)}
+.pstat .pcard span{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.pstat .trow{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid rgba(39,34,26,.55);font-size:13px}
+.pstat .trow:last-child{border-bottom:none}
+.pstat .trow .tn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.rrow .rname{text-align:left;cursor:pointer}
+.rrow .rname:hover{color:var(--gold2)}
+
+/* ================= zoom ================= */
+.zoombar{position:fixed;left:20px;bottom:54px;z-index:26;display:flex;align-items:center;gap:2px;
+  background:var(--panel3);border:1px solid var(--line2);padding:4px 7px;user-select:none;
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}
+.zoombar .mini{font-size:14px;padding:3px 8px}
+.zoombar #zoomLbl{font-family:var(--disp);font-size:11px;letter-spacing:.08em;min-width:44px;text-align:center;color:var(--muted)}
+
+/* ================= tooltip ================= */
+.tip{position:fixed;z-index:90;background:#0C0A06;border:1px solid var(--gold-deep);color:var(--text);font-size:11.5px;font-weight:600;
+  padding:6px 11px;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.6);
+  opacity:0;transform:translateY(3px);transition:opacity .15s,transform .15s}
+.tip.on{opacity:1;transform:none}
+
+/* ================= modal ================= */
+.overlay{position:fixed;inset:0;z-index:60;background:rgba(5,4,3,.72);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .16s}
+.overlay.on{opacity:1}
+.modal{--c:14px;--bl:var(--line2);--bg2:#13110C;min-width:min(350px,90vw);max-width:490px;padding:25px 27px;
+  transform:translateY(10px) scale(.97);transition:transform .16s;filter:drop-shadow(0 30px 90px rgba(0,0,0,.7))}
+.overlay.on .modal{transform:none}
+.modal.wide{max-width:650px;max-height:84vh;overflow-y:auto}
+.mtitle{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);margin-bottom:13px}
+.mbody{color:var(--muted);font-size:13.5px;margin-bottom:18px}
+.modal input[type=text]{width:100%;margin-bottom:18px}
+.mrow{display:flex;justify-content:flex-end;gap:10px}
+.help h4{font-family:var(--disp);font-weight:600;font-size:11.5px;letter-spacing:.24em;color:var(--gold);margin:18px 0 8px;text-transform:uppercase}
+.help h4:first-of-type{margin-top:0}
+.help p{color:var(--muted);font-size:13px;margin-bottom:7px}
+.help p b{color:var(--text)}
+.help .key{display:inline-block;background:var(--panel3);border:1px solid var(--line2);padding:0 7px;font-size:11.5px;font-weight:700;color:var(--text)}
+
+/* ================= toast / confetti ================= */
+#toasts{position:fixed;right:20px;bottom:54px;z-index:80;display:flex;flex-direction:column;gap:9px;align-items:flex-end}
+.toast{display:flex;align-items:center;gap:9px;background:var(--panel3);border:1px solid var(--line2);
+  padding:10px 17px;font-size:13px;font-weight:600;filter:drop-shadow(0 10px 30px rgba(0,0,0,.55));
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));
+  opacity:0;transform:translateX(16px);transition:all .25s cubic-bezier(.2,.7,.3,1)}
+.toast.on{opacity:1;transform:none}
+.toast .ticon{color:var(--green);font-weight:800}
+.toast.gold .ticon{color:var(--gold)}
+canvas.confetti{position:fixed;inset:0;z-index:100;pointer-events:none}
+
+/* ================= зал славы ================= */
+.hof{--c:14px;--bl:linear-gradient(135deg,rgba(212,175,55,.5),var(--line) 65%);max-width:560px;margin:22px auto 0;padding:16px 20px}
+.hofhead{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold2);margin-bottom:10px;text-align:center}
+.hofrow{display:flex;align-items:center;gap:11px;padding:7px 4px;border-bottom:1px solid rgba(39,34,26,.55)}
+.hofrow:last-child{border-bottom:none}
+.hofrow .hofn{font-family:var(--disp);font-weight:600;font-size:12px;color:var(--dim);width:18px;text-align:center}
+.hofrow:first-of-type .hofn{color:var(--gold)}
+.hofrow .hofname{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hofrow .hofmed{font-size:12.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* ================= roster (живой состав) ================= */
+.roster{position:fixed;top:60px;right:14px;bottom:54px;width:302px;z-index:25;--c:14px;--bl:var(--line2);--bg2:#0F0D0A;
+  display:flex;flex-direction:column;filter:drop-shadow(-10px 12px 40px rgba(0,0,0,.55));animation:slideIn .25s ease both}
+@keyframes slideIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.roster .rhead{display:flex;align-items:center;gap:10px;padding:15px 17px 10px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold2)}
+.roster .rhead .sp{flex:1}
+.roster .raddrow{display:flex;gap:8px;padding:0 16px 13px}
+.roster .raddrow input{flex:1;min-width:0;padding:7px 11px}
+.roster .rlist{flex:1;overflow-y:auto;padding:0 9px 12px}
+.rrow{display:flex;align-items:center;gap:9px;padding:7px 9px;border-bottom:1px solid rgba(39,34,26,.55)}
+.rrow .rcol{flex:1;min-width:0;display:flex;flex-direction:column}
+.rrow .rname{min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .rmem{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .rloc{font-family:var(--disp);font-size:9px;font-weight:500;color:var(--dim);text-transform:uppercase;letter-spacing:.14em;white-space:nowrap}
+.rrow .rtools{display:none;gap:1px}
+.rrow:hover .rtools{display:inline-flex}
+.rempty{padding:18px;text-align:center;color:var(--dim);font-size:12.5px}
+
+@media (max-width:700px){
+  .fmt3{grid-template-columns:1fr}
+  .topbar{flex-wrap:wrap}
+  .topbar .prog{display:none}
+  .podium{padding:17px 20px;gap:18px}
+  .hero h1{font-size:13vw}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition:none !important;animation:none !important}
+}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar"></div>
+<div class="wrap" id="app"></div>
+<div class="hints hidden" id="hints"></div>
+<input type="file" id="importFile" accept=".json" class="hidden">
+
+<script>
+'use strict';
+/* ================= state ================= */
+const LS_KEY = 'turnir_v1';
+let DB = null;
+try { DB = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) { DB = null; }
+if (!DB || !Array.isArray(DB.tournaments)) DB = { tournaments: [] };
+
+let view = { screen: 'home', tid: null };
+let rosterOpen = false;
+let tvMode = false;
+let timerOpen = false;
+const timer = { left: 600, total: 600, run: false, iv: null };
+let zoomLvl = Math.min(1.5, Math.max(0.4, parseFloat(localStorage.getItem('turnir_zoom')) || 1));
+const champSeen = {};
+function setZoom(z) {
+  zoomLvl = Math.min(1.5, Math.max(0.4, Math.round(z * 20) / 20));
+  localStorage.setItem('turnir_zoom', zoomLvl);
+  document.querySelectorAll('.zoomw').forEach(w => { w.style.zoom = zoomLvl; });
+  const lbl = document.getElementById('zoomLbl');
+  if (lbl) lbl.textContent = Math.round(zoomLvl * 100) + '%';
+  requestAnimationFrame(drawEdges);
+}
+
+/* глобальный Ctrl+Z: перед каждым сохранением запоминаем прошлое состояние */
+const undoStack = [];
+function save() {
+  const prev = localStorage.getItem(LS_KEY);
+  if (prev) { undoStack.push(prev); if (undoStack.length > 50) undoStack.shift(); }
+  localStorage.setItem(LS_KEY, JSON.stringify(DB));
+}
+function undoLast() {
+  const prev = undoStack.pop();
+  if (!prev) { toast('Нечего отменять', '↺'); return; }
+  try { DB = JSON.parse(prev); } catch (e) { return; }
+  localStorage.setItem(LS_KEY, prev);
+  if (view.screen === 'tour' && !curT()) view = { screen: 'home', tid: null };
+  render();
+  toast('Действие отменено', '↺');
+}
+function shuffleArr(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+/* «Команда: игрок1, игрок2» → {name, members}; обычное имя → {name, members:null} */
+function parseEntry(s) {
+  const i = s.indexOf(':');
+  if (i < 0) return { name: s.trim(), members: null };
+  const name = s.slice(0, i).trim();
+  const members = s.slice(i + 1).split(',').map(x => x.trim()).filter(Boolean);
+  return { name: name || s.trim(), members: members.length ? members : null };
+}
+function entryStr(p) { return p.members ? `${p.name}: ${p.members.join(', ')}` : p.name; }
+function uid() { return 'x' + Math.random().toString(36).slice(2, 10); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function curT() { return DB.tournaments.find(t => t.id === view.tid) || null; }
+function pname(t, pid) { return pid === 'BYE' ? 'bye' : (t.players[pid] ? t.players[pid].name : '?'); }
+
+const FMT_LABEL = { single: 'Олимпийская сетка', double: 'Double elimination', groups: 'Группы + плей-офф' };
+const FMT_ICO = { single: '⚡', double: '♻️', groups: '👥' };
+
+/* ================= avatars ================= */
+function hashStr(s) { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function avatarByName(n, lg) {
+  const h = hashStr(n) % 360;
+  const ini = n.trim().split(/\s+/).slice(0, 2).map(w => (w[0] || '')).join('').toUpperCase() || '?';
+  return `<span class="av ${lg ? 'lg' : ''}" style="background:linear-gradient(135deg,hsl(${h},46%,48%),hsl(${(h + 36) % 360},46%,34%))">${esc(ini)}</span>`;
+}
+function avatar(t, pid, lg) { return avatarByName(pname(t, pid), lg); }
+/* зал славы: медали по всем турнирам, игроки склеиваются по имени */
+function hallOfFame() {
+  const agg = {};
+  for (const t of DB.tournaments) {
+    const p = podium(t);
+    [['first', 'g'], ['second', 's'], ['third', 'b']].forEach(([k, f]) => {
+      if (!p[k]) return;
+      const nm = pname(t, p[k]);
+      const key = nm.toLowerCase();
+      if (!agg[key]) agg[key] = { name: nm, g: 0, s: 0, b: 0 };
+      agg[key][f]++;
+    });
+  }
+  return Object.values(agg).sort((a, b) => b.g - a.g || b.s - a.s || b.b - a.b).slice(0, 8);
+}
+
+/* ================= bracket generation ================= */
+function nextPow2(n) { let p = 1; while (p < n) p *= 2; return Math.max(2, p); }
+function seedOrder(n) {
+  if (n === 1) return [1];
+  const prev = seedOrder(n / 2), out = [];
+  for (const s of prev) out.push(s, n + 1 - s);
+  return out;
+}
+function mk(t, bracket, round, idx, label) {
+  const m = { id: uid(), bracket, round, idx, label,
+    slots: [{ pid: null, score: null, src: null }, { pid: null, score: null, src: null }],
+    winner: null, auto: false, wTo: null, lTo: null };
+  t.matches[m.id] = m;
+  return m;
+}
+function buildElim(t, pids, bracket, thirdPlace) {
+  const size = nextPow2(pids.length), k = Math.log2(size);
+  const order = seedOrder(size);
+  const rounds = [];
+  let num = 1;
+  for (let r = 1; r <= k; r++) {
+    const cnt = size / Math.pow(2, r), row = [];
+    for (let i = 0; i < cnt; i++) {
+      const label = (r === k) ? 'Финал' : 'М' + (num++);
+      row.push(mk(t, bracket, r, i, label));
+    }
+    rounds.push(row);
+  }
+  rounds[0].forEach((m, i) => {
+    const a = order[2 * i] - 1, b = order[2 * i + 1] - 1;
+    m.slots[0].pid = pids[a] !== undefined ? pids[a] : 'BYE';
+    m.slots[1].pid = pids[b] !== undefined ? pids[b] : 'BYE';
+  });
+  for (let r = 0; r < k - 1; r++) {
+    rounds[r].forEach((m, i) => {
+      const tm = rounds[r + 1][Math.floor(i / 2)];
+      m.wTo = { mid: tm.id, slot: i % 2 };
+      tm.slots[i % 2].src = { mid: m.id, take: 'winner' };
+    });
+  }
+  let thirdId = null;
+  if (thirdPlace && k >= 2) {
+    const th = mk(t, bracket + '3', 1, 0, 'За 3-е место');
+    thirdId = th.id;
+    rounds[k - 2].forEach((m, i) => {
+      m.lTo = { mid: th.id, slot: i };
+      th.slots[i].src = { mid: m.id, take: 'loser' };
+    });
+  }
+  return { finalId: rounds[k - 1][0].id, thirdId, rounds };
+}
+function buildDouble(t, pids) {
+  const size = nextPow2(pids.length), k = Math.log2(size);
+  const { finalId, rounds: wb } = buildElim(t, pids, 'wb', false);
+  const lbRounds = [];
+  let lnum = 1;
+  if (k >= 2) {
+    let row = [];
+    for (let i = 0; i < size / 4; i++) row.push(mk(t, 'lb', 1, i, 'Н' + (lnum++)));
+    wb[0].forEach((m, i) => {
+      const tm = row[Math.floor(i / 2)];
+      m.lTo = { mid: tm.id, slot: i % 2 };
+      tm.slots[i % 2].src = { mid: m.id, take: 'loser' };
+    });
+    lbRounds.push(row);
+    for (let r = 2; r <= 2 * (k - 1); r++) {
+      if (r % 2 === 0) {
+        const j = r / 2, cnt = size / Math.pow(2, j + 1), row2 = [];
+        for (let i = 0; i < cnt; i++) row2.push(mk(t, 'lb', r, i, 'Н' + (lnum++)));
+        lbRounds[r - 2].forEach((m, i) => {
+          m.wTo = { mid: row2[i].id, slot: 1 };
+          row2[i].slots[1].src = { mid: m.id, take: 'winner' };
+        });
+        wb[j].forEach((m, i) => {
+          const ti = (j % 2 === 1) ? (cnt - 1 - i) : i;
+          m.lTo = { mid: row2[ti].id, slot: 0 };
+          row2[ti].slots[0].src = { mid: m.id, take: 'loser' };
+        });
+        lbRounds.push(row2);
+      } else {
+        const j = (r - 1) / 2, cnt = size / Math.pow(2, j + 2), row2 = [];
+        for (let i = 0; i < cnt; i++) row2.push(mk(t, 'lb', r, i, 'Н' + (lnum++)));
+        lbRounds[r - 2].forEach((m, i) => {
+          const tm = row2[Math.floor(i / 2)];
+          m.wTo = { mid: tm.id, slot: i % 2 };
+          tm.slots[i % 2].src = { mid: m.id, take: 'winner' };
+        });
+        lbRounds.push(row2);
+      }
+    }
+  }
+  const gf = mk(t, 'gf', 1, 0, 'Гранд-финал');
+  const wbFinal = t.matches[finalId];
+  wbFinal.wTo = { mid: gf.id, slot: 0 };
+  gf.slots[0].src = { mid: finalId, take: 'winner' };
+  if (k >= 2) {
+    const lbFinal = lbRounds[lbRounds.length - 1][0];
+    lbFinal.wTo = { mid: gf.id, slot: 1 };
+    gf.slots[1].src = { mid: lbFinal.id, take: 'winner' };
+    t.lbFinalId = lbFinal.id;
+  } else {
+    wbFinal.lTo = { mid: gf.id, slot: 1 };
+    gf.slots[1].src = { mid: finalId, take: 'loser' };
+    t.lbFinalId = null;
+  }
+  const gf2 = mk(t, 'gf2', 1, 0, 'Гранд-финал 2');
+  gf.wTo = { mid: gf2.id, slot: 0 };
+  gf.lTo = { mid: gf2.id, slot: 1 };
+  gf2.slots[0].src = { mid: gf.id, take: 'winner' };
+  gf2.slots[1].src = { mid: gf.id, take: 'loser' };
+  t.finalId = finalId; t.gfId = gf.id; t.gf2Id = gf2.id;
+}
+
+/* ================= match logic ================= */
+function loserOf(m) { return m.slots[0].pid === m.winner ? m.slots[1].pid : m.slots[0].pid; }
+function isReady(m) {
+  return !m.winner && m.slots[0].pid && m.slots[1].pid && m.slots[0].pid !== 'BYE' && m.slots[1].pid !== 'BYE';
+}
+function propagate(t, m) {
+  const w = m.winner, l = loserOf(m);
+  if (m.wTo) t.matches[m.wTo.mid].slots[m.wTo.slot].pid = w;
+  if (m.lTo) t.matches[m.lTo.mid].slots[m.lTo.slot].pid = l;
+}
+function resolveByes(t) {
+  let changed = true, guard = 0;
+  while (changed && guard++ < 2000) {
+    changed = false;
+    for (const m of Object.values(t.matches)) {
+      if (m.winner) continue;
+      const a = m.slots[0].pid, b = m.slots[1].pid;
+      if (!a || !b) continue;
+      if (a === 'BYE' || b === 'BYE') {
+        m.winner = (a === 'BYE' && b === 'BYE') ? 'BYE' : (a === 'BYE' ? b : a);
+        m.auto = true;
+        propagate(t, m);
+        changed = true;
+      }
+    }
+  }
+}
+function setWinner(t, m, si) {
+  if (m.winner || !isReady(m)) return;
+  let ws = m.slots[si].score == null ? null : m.slots[si].score;
+  let os = m.slots[1 - si].score == null ? null : m.slots[1 - si].score;
+  if (ws == null && os == null) { ws = 1; os = 0; }
+  else { ws = ws || 0; os = os || 0; if (ws <= os) ws = os + 1; }
+  m.slots[si].score = ws; m.slots[1 - si].score = os;
+  m.winner = m.slots[si].pid;
+  propagate(t, m);
+  resolveByes(t);
+  save(); render();
+}
+function cascadeUndo(t, m) {
+  for (const key of ['wTo', 'lTo']) {
+    const d = m[key];
+    if (!d) continue;
+    const dm = t.matches[d.mid];
+    if (!dm) continue;
+    if (dm.winner) cascadeUndo(t, dm);
+    dm.slots[d.slot].pid = null;
+    dm.slots[d.slot].score = null;
+  }
+  m.winner = null; m.auto = false;
+  m.slots.forEach(s => { s.score = null; });
+}
+
+/* ================= player management ================= */
+function elimBracketOf(t) { return t.format === 'groups' ? 'po' : 'wb'; }
+function findByeSlot(t) {
+  const br = elimBracketOf(t);
+  for (const m of byBracket(t, br)) {
+    if (m.round !== 1) continue;
+    for (let i = 0; i < 2; i++) if (m.slots[i].pid === 'BYE') return { m, i };
+  }
+  return null;
+}
+function seatPlayer(t, m, si, pid) {
+  cascadeUndo(t, m);
+  m.slots[si].pid = pid;
+  resolveByes(t);
+}
+function rebuildElim(t, pidsOpt) {
+  for (const mm of Object.values(t.matches))
+    if (!mm.bracket.startsWith('g:')) delete t.matches[mm.id];
+  const pids = pidsOpt || Object.keys(t.players);
+  if (t.format === 'double') buildDouble(t, pids);
+  else {
+    const res = buildElim(t, pids, 'wb', t.opts.thirdPlace);
+    t.finalId = res.finalId; t.thirdId = res.thirdId;
+  }
+  resolveByes(t);
+}
+function removeFromElim(t, pid) {
+  const origins = [];
+  for (const m of Object.values(t.matches)) {
+    if (m.bracket !== 'wb' && m.bracket !== 'po') continue;
+    m.slots.forEach((s, i) => { if (s.pid === pid && !s.src) origins.push({ m, i }); });
+  }
+  for (const o of origins) if (o.m.winner) cascadeUndo(t, o.m);
+  for (const o of origins) o.m.slots[o.i].pid = 'BYE';
+  if (t.format !== 'groups') delete t.players[pid];
+  resolveByes(t);
+}
+
+/* ================= groups ================= */
+function grp(t, gid) { return t.groups.find(g => g.id === gid); }
+function groupMatches(t, g) {
+  return Object.values(t.matches).filter(m => m.bracket === 'g:' + g.id).sort((a, b) => a.idx - b.idx);
+}
+function genGroupMatches(t, g) {
+  for (const m of Object.values(t.matches)) if (m.bracket === 'g:' + g.id) delete t.matches[m.id];
+  let n = 0;
+  for (let i = 0; i < g.pids.length; i++)
+    for (let j = i + 1; j < g.pids.length; j++) {
+      const m = mk(t, 'g:' + g.id, 1, n++, '');
+      m.slots[0].pid = g.pids[i];
+      m.slots[1].pid = g.pids[j];
+    }
+}
+function groupHasResults(t, g) { return groupMatches(t, g).some(m => m.winner); }
+function standings(t, g) {
+  const st = {};
+  g.pids.forEach(p => { st[p] = { pid: p, w: 0, l: 0, sf: 0, sa: 0 }; });
+  for (const m of groupMatches(t, g)) {
+    if (!m.winner) continue;
+    const w = m.winner, l = loserOf(m);
+    const wi = m.slots[0].pid === w ? 0 : 1;
+    const ws = m.slots[wi].score || 0, ls = m.slots[1 - wi].score || 0;
+    if (st[w]) { st[w].w++; st[w].sf += ws; st[w].sa += ls; }
+    if (st[l]) { st[l].l++; st[l].sf += ls; st[l].sa += ws; }
+  }
+  return Object.values(st).sort((a, b) =>
+    b.w - a.w || (b.sf - b.sa) - (a.sf - a.sa) || b.sf - a.sf ||
+    pname(t, a.pid).localeCompare(pname(t, b.pid), 'ru'));
+}
+async function moveBetweenGroups(t, pid, fromGid, toGid) {
+  const from = grp(t, fromGid), to = grp(t, toGid);
+  if (!from || !to || from === to) return;
+  const dirty = [from, to].filter(g => groupHasResults(t, g)).map(g => g.name);
+  if (dirty.length && !await uiConfirm(`Составы меняются — результаты групп(ы) ${dirty.join(', ')} сбросятся.`, { ok: 'Продолжить' })) { render(); return; }
+  const nm = pname(t, pid);
+  from.pids = from.pids.filter(p => p !== pid);
+  to.pids.push(pid);
+  genGroupMatches(t, from);
+  genGroupMatches(t, to);
+  save(); render();
+  toast(`${nm}: группа ${from.name} → ${to.name}`, '🔀');
+}
+function makePO(t, adv, thirdPlace) {
+  const q = [];
+  for (let r = 0; r < adv; r++) {
+    const idxs = t.groups.map((g, i) => i);
+    const order = r % 2 ? idxs.slice().reverse() : idxs;
+    for (const gi of order) {
+      const s = standings(t, t.groups[gi]);
+      if (s[r]) q.push(s[r].pid);
+    }
+  }
+  if (q.length < 2) { uiAlert('Слишком мало участников выходит в плей-офф.'); return; }
+  const res = buildElim(t, q, 'po', thirdPlace);
+  t.finalId = res.finalId; t.thirdId = res.thirdId;
+  t.opts.thirdPlace = thirdPlace;
+  t.phase = 'po';
+  resolveByes(t);
+  save(); render();
+  toast('Плей-офф сформирован — погнали!', '🔥', true);
+}
+function resetPO(t) {
+  for (const m of Object.values(t.matches))
+    if (m.bracket === 'po' || m.bracket === 'po3') delete t.matches[m.id];
+  t.finalId = null; t.thirdId = null; t.phase = 'groups';
+  save(); render();
+  toast('Плей-офф сброшен, группы открыты');
+}
+
+/* ================= podium / progress ================= */
+function podium(t) {
+  const out = { first: null, second: null, third: null };
+  const M = id => id ? t.matches[id] : null;
+  if (t.format === 'double') {
+    const gf = M(t.gfId), gf2 = M(t.gf2Id);
+    if (gf && gf.winner) {
+      if (gf.winner === gf.slots[0].pid) { out.first = gf.winner; out.second = loserOf(gf); }
+      else if (gf2 && gf2.winner) { out.first = gf2.winner; out.second = loserOf(gf2); }
+    }
+    const lbf = M(t.lbFinalId);
+    if (lbf && lbf.winner) out.third = loserOf(lbf);
+  } else if (t.format === 'single' || (t.format === 'groups' && t.phase === 'po')) {
+    const f = M(t.finalId);
+    if (f && f.winner) { out.first = f.winner; out.second = loserOf(f); }
+    const th = M(t.thirdId);
+    if (th && th.winner) out.third = th.winner;
+  }
+  for (const k of ['first', 'second', 'third']) if (out[k] === 'BYE') out[k] = null;
+  return out;
+}
+function gf2Needed(t) {
+  if (t.format !== 'double') return false;
+  const gf = t.matches[t.gfId];
+  return !!(gf && gf.winner && gf.winner === gf.slots[1].pid);
+}
+function progressOf(t) {
+  const ms = Object.values(t.matches).filter(m => {
+    if (m.auto) return false;
+    if (m.bracket === 'gf2' && !gf2Needed(t)) return false;
+    return true;
+  });
+  const total = ms.length || 1;
+  const played = ms.filter(m => m.winner).length;
+  return { played, total, pct: Math.round(played / total * 100) };
+}
+
+/* ================= ui primitives ================= */
+function openModal(html, wide) {
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  ov.innerHTML = `<div class="modal cut ${wide ? 'wide' : ''}">${html}</div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add('on'));
+  return ov;
+}
+function closeModal(ov) {
+  ov.classList.remove('on');
+  setTimeout(() => ov.remove(), 170);
+}
+function uiConfirm(msg, opts = {}) {
+  return new Promise(res => {
+    const ov = openModal(`
+      <div class="mtitle">${esc(opts.title || 'Точно?')}</div>
+      <div class="mbody">${esc(msg)}</div>
+      <div class="mrow">
+        <button class="btn ghost" id="mCancel">Отмена</button>
+        <button class="btn ${opts.danger ? 'danger' : 'primary'}" id="mOk">${esc(opts.ok || 'Да')}</button>
+      </div>`);
+    const done = v => { closeModal(ov); document.removeEventListener('keydown', key); res(v); };
+    ov.querySelector('#mOk').onclick = () => done(true);
+    ov.querySelector('#mCancel').onclick = () => done(false);
+    ov.onclick = e => { if (e.target === ov) done(false); };
+    const key = e => { if (e.key === 'Escape') done(false); if (e.key === 'Enter') done(true); };
+    document.addEventListener('keydown', key);
+    ov.querySelector('#mOk').focus();
+  });
+}
+function uiPrompt(title, value = '', placeholder = '') {
+  return new Promise(res => {
+    const ov = openModal(`
+      <div class="mtitle">${esc(title)}</div>
+      <input type="text" id="modalInput" value="${esc(value)}" placeholder="${esc(placeholder)}" maxlength="40">
+      <div class="mrow">
+        <button class="btn ghost" id="mCancel">Отмена</button>
+        <button class="btn primary" id="mOk">Готово</button>
+      </div>`);
+    const inp = ov.querySelector('#modalInput');
+    const done = v => { closeModal(ov); res(v); };
+    ov.querySelector('#mOk').onclick = () => done(inp.value.trim() || null);
+    ov.querySelector('#mCancel').onclick = () => done(null);
+    ov.onclick = e => { if (e.target === ov) done(null); };
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') done(inp.value.trim() || null);
+      if (e.key === 'Escape') done(null);
+    });
+    inp.focus(); inp.select();
+  });
+}
+function uiAlert(msg) {
+  const ov = openModal(`
+    <div class="mtitle">Упс</div>
+    <div class="mbody">${esc(msg)}</div>
+    <div class="mrow"><button class="btn primary" id="mOk">Понятно</button></div>`);
+  ov.querySelector('#mOk').onclick = () => closeModal(ov);
+  ov.onclick = e => { if (e.target === ov) closeModal(ov); };
+  ov.querySelector('#mOk').focus();
+}
+function toast(msg, icon = '✓', gold = false) {
+  let c = document.getElementById('toasts');
+  if (!c) { c = document.createElement('div'); c.id = 'toasts'; document.body.appendChild(c); }
+  const el = document.createElement('div');
+  el.className = 'toast' + (gold ? ' gold' : '');
+  el.innerHTML = `<span class="ticon">${icon}</span><span>${esc(msg)}</span>`;
+  c.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('on'));
+  setTimeout(() => { el.classList.remove('on'); setTimeout(() => el.remove(), 280); }, 2700);
+}
+let tipEl = null, tipFor = null;
+document.addEventListener('mouseover', e => {
+  if (drag && drag.started) return;
+  const el = e.target.closest('[data-tip]');
+  if (el === tipFor) return;
+  hideTip();
+  if (!el) return;
+  tipFor = el;
+  tipEl = document.createElement('div');
+  tipEl.className = 'tip';
+  tipEl.textContent = el.dataset.tip;
+  document.body.appendChild(tipEl);
+  const r = el.getBoundingClientRect(), tr = tipEl.getBoundingClientRect();
+  let x = r.left + r.width / 2 - tr.width / 2;
+  x = Math.max(8, Math.min(x, innerWidth - tr.width - 8));
+  let y = r.top - tr.height - 8;
+  if (y < 8) y = r.bottom + 8;
+  tipEl.style.left = x + 'px';
+  tipEl.style.top = y + 'px';
+  requestAnimationFrame(() => tipEl && tipEl.classList.add('on'));
+});
+function hideTip() { if (tipEl) { tipEl.remove(); tipEl = null; } tipFor = null; }
+document.addEventListener('click', hideTip, true);
+document.addEventListener('scroll', hideTip, true);
+
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = document.createElement('canvas');
+  cv.className = 'confetti';
+  document.body.appendChild(cv);
+  cv.width = innerWidth; cv.height = innerHeight;
+  const ctx = cv.getContext('2d');
+  const cols = ['#D4AF37', '#F2DA8C', '#FFF3CE', '#FFFFFF', '#2DD4BF'];
+  const ps = Array.from({ length: 170 }, () => ({
+    x: Math.random() * cv.width, y: -30 - Math.random() * cv.height * 0.4,
+    w: 5 + Math.random() * 6, h: 7 + Math.random() * 8,
+    c: cols[Math.floor(Math.random() * cols.length)],
+    vy: 2.2 + Math.random() * 3.6, vx: -1.6 + Math.random() * 3.2,
+    r: Math.random() * Math.PI, vr: -0.12 + Math.random() * 0.24
+  }));
+  let frames = 0;
+  (function tick() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const p of ps) {
+      p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    if (++frames < 260) requestAnimationFrame(tick); else cv.remove();
+  })();
+}
+
+/* ================= таймер матча ================= */
+function fmtT(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+function beep(freq, when, ac) {
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.connect(g); g.connect(ac.destination);
+  o.frequency.value = freq; g.gain.value = 0.12;
+  o.start(ac.currentTime + when); o.stop(ac.currentTime + when + 0.18);
+}
+function beepEnd() {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    beep(880, 0, ac); beep(880, 0.3, ac); beep(1175, 0.6, ac);
+  } catch (e) {}
+  toast('Время вышло!', '⏱', true);
+}
+function tickTimer() {
+  if (!timer.run) return;
+  timer.left--;
+  if (timer.left <= 0) {
+    timer.left = 0; timer.run = false;
+    clearInterval(timer.iv); timer.iv = null;
+    beepEnd();
+  }
+  updateTimerUI();
+}
+function updateTimerUI() {
+  const d = document.getElementById('timerDisp');
+  if (d) { d.textContent = fmtT(timer.left); d.classList.toggle('zero', timer.left === 0); }
+  const pb = document.getElementById('timerBtn');
+  if (pb) pb.textContent = timer.run ? '⏸' : '▶';
+}
+function renderTimerW() {
+  let el = document.getElementById('timerw');
+  if (view.screen !== 'tour' || !timerOpen) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'timerw';
+    el.className = 'timerw cut';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `
+    <span class="tdisp ${timer.left === 0 ? 'zero' : ''}" id="timerDisp">${fmtT(timer.left)}</span>
+    <button class="mini" id="timerBtn" data-action="tstart" data-tip="Старт / пауза">${timer.run ? '⏸' : '▶'}</button>
+    <button class="mini" data-action="treset" data-tip="Сброс">↺</button>
+    ${[5, 10, 15].map(m => `<button class="mini" data-action="tset" data-min="${m}">${m}м</button>`).join('')}
+    <button class="mini" data-action="timer" data-tip="Закрыть">✕</button>`;
+}
+
+/* ================= статистика игрока ================= */
+function playerStats(name) {
+  const key = name.toLowerCase();
+  const st = { name, g: 0, s: 0, b: 0, w: 0, l: 0, tours: 0, rows: [] };
+  for (const t of DB.tournaments) {
+    const pids = Object.keys(t.players).filter(pid => t.players[pid].name.toLowerCase() === key);
+    if (!pids.length) continue;
+    st.tours++;
+    for (const m of Object.values(t.matches)) {
+      if (!m.winner || m.auto) continue;
+      if (!pids.includes(m.slots[0].pid) && !pids.includes(m.slots[1].pid)) continue;
+      if (pids.includes(m.winner)) st.w++; else st.l++;
+    }
+    const p = podium(t);
+    let res = '—';
+    if (p.first && pids.includes(p.first)) { st.g++; res = '🥇'; }
+    else if (p.second && pids.includes(p.second)) { st.s++; res = '🥈'; }
+    else if (p.third && pids.includes(p.third)) { st.b++; res = '🥉'; }
+    st.rows.push({ tn: t.name, res });
+  }
+  return st;
+}
+function showPlayerStats(name) {
+  const s = playerStats(name);
+  const wr = (s.w + s.l) ? Math.round(s.w / (s.w + s.l) * 100) : 0;
+  const ov = openModal(`<div class="pstat">
+    <div class="mtitle" style="display:flex;align-items:center;gap:10px">${avatarByName(s.name)} ${esc(s.name)}</div>
+    <div class="bigrow">
+      <div class="pcard cut"><b>${s.tours}</b><span>турниров</span></div>
+      <div class="pcard cut"><b>${s.w}–${s.l}</b><span>матчи В–П</span></div>
+      <div class="pcard cut"><b>${wr}%</b><span>винрейт</span></div>
+      <div class="pcard cut"><b>${s.g ? '🥇' + s.g : ''}${s.s ? ' 🥈' + s.s : ''}${s.b ? ' 🥉' + s.b : ''}${(s.g + s.s + s.b) === 0 ? '—' : ''}</b><span>медали</span></div>
+    </div>
+    ${s.rows.map(r => `<div class="trow"><span class="tn">${esc(r.tn)}</span><span>${r.res}</span></div>`).join('')}
+    <div class="mrow" style="margin-top:14px"><button class="btn primary" id="mOk">Закрыть</button></div>
+  </div>`);
+  ov.querySelector('#mOk').onclick = () => closeModal(ov);
+  ov.onclick = e => { if (e.target === ov) closeModal(ov); };
+}
+
+/* ================= actions ================= */
+function createTournament(name, format, names, opts) {
+  const t = { id: uid(), name, format, createdAt: Date.now(),
+    players: {}, matches: {}, opts,
+    groups: null, phase: null,
+    finalId: null, thirdId: null, gfId: null, gf2Id: null, lbFinalId: null };
+  const pids = names.map(n => { const id = uid(); const ent = parseEntry(n); t.players[id] = { name: ent.name, members: ent.members }; return id; });
+  if (format === 'single') {
+    const res = buildElim(t, pids, 'wb', opts.thirdPlace);
+    t.finalId = res.finalId; t.thirdId = res.thirdId;
+    resolveByes(t);
+  } else if (format === 'double') {
+    buildDouble(t, pids);
+    resolveByes(t);
+  } else {
+    t.phase = 'groups';
+    const G = Math.min(opts.groupCount, Math.max(1, pids.length));
+    t.groups = [];
+    for (let i = 0; i < G; i++) t.groups.push({ id: uid(), name: String.fromCharCode(65 + i), pids: [] });
+    pids.forEach((p, i) => t.groups[i % G].pids.push(p));
+    t.groups.forEach(g => genGroupMatches(t, g));
+  }
+  DB.tournaments.unshift(t);
+  save();
+  view = { screen: 'tour', tid: t.id };
+  render();
+  toast('Турнир создан — удачи!', '🏆', true);
+}
+function doSwap(t, aSel, bSel) {
+  const ma = t.matches[aSel.mid], mb = t.matches[bSel.mid];
+  const pa = ma.slots[aSel.slot].pid, pb = mb.slots[bSel.slot].pid;
+  if (pa === pb) return;
+  const na = pname(t, pa), nb = pname(t, pb);
+  if (ma.winner && ma.auto) cascadeUndo(t, ma);
+  if (mb.winner && mb.auto) cascadeUndo(t, mb);
+  ma.slots[aSel.slot].pid = pb;
+  mb.slots[bSel.slot].pid = pa;
+  resolveByes(t);
+  save(); render();
+  toast(pb === 'BYE' ? `${na} перемещён` : `${na} ⇄ ${nb}`, '🔀');
+}
+function exportAll() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dubai-project-backup.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Бэкап сохранён в загрузки', '💾');
+}
+/* ================= экспорт сетки картинкой ================= */
+function slotInfo(t, m, si) {
+  const s = m.slots[si];
+  if (s.pid === 'BYE') return { kind: 'bye', text: '— свободный слот —' };
+  if (!s.pid) return { kind: 'empty', text: s.src ? srcText(t, s.src) : '—' };
+  const p = t.players[s.pid];
+  return { kind: 'p', name: pname(t, s.pid), mem: p && p.members ? p.members.join(' · ') : '',
+    score: s.score == null ? '·' : String(s.score), win: m.winner === s.pid, lose: !!m.winner && m.winner !== s.pid };
+}
+function chamf(ctx, x, y, w, h, c) {
+  ctx.beginPath();
+  ctx.moveTo(x, y); ctx.lineTo(x + w - c, y); ctx.lineTo(x + w, y + c);
+  ctx.lineTo(x + w, y + h); ctx.lineTo(x + c, y + h); ctx.lineTo(x, y + h - c);
+  ctx.closePath();
+}
+function exportImage(t) {
+  const secs = [...document.querySelectorAll('.bsec')];
+  if (!secs.length) { uiAlert('Сетки на экране нет — нечего экспортировать.'); return; }
+  const z = zoomLvl || 1, SC = 1.6, pad = 44, headH = 92, secTitleH = 38, secGap = 40;
+  const data = secs.map(sec => {
+    const prev = sec.previousElementSibling;
+    let lbl = '';
+    if (prev && prev.classList.contains('bseclbl')) {
+      lbl = prev.firstChild ? prev.firstChild.textContent.trim() : '';
+      const tag = prev.querySelector('.tag');
+      if (tag) lbl += ' · ' + tag.textContent.trim();
+    }
+    const sr = sec.getBoundingClientRect();
+    const items = [...sec.querySelectorAll('.match')].map(el => {
+      const m = t.matches[el.dataset.mid];
+      const r = el.getBoundingClientRect();
+      return { m,
+        x: (r.left - sr.left + sec.scrollLeft) / z, y: (r.top - sr.top + sec.scrollTop) / z,
+        w: r.width / z, h: r.height / z,
+        slots: [...el.querySelectorAll('.slot')].map(sl => {
+          const rr = sl.getBoundingClientRect();
+          return { y: (rr.top - sr.top + sec.scrollTop) / z, h: rr.height / z };
+        }) };
+    });
+    return { lbl, W: sec.scrollWidth / z, H: sec.scrollHeight / z, items };
+  });
+  const W = Math.max(...data.map(d => d.W)) + pad * 2;
+  const H = headH + data.reduce((a, d) => a + secTitleH + d.H + secGap, 0) + pad / 2;
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(W * SC); cv.height = Math.round(H * SC);
+  const ctx = cv.getContext('2d');
+  ctx.scale(SC, SC);
+  ctx.fillStyle = '#080706'; ctx.fillRect(0, 0, W, H);
+  const grad = ctx.createRadialGradient(W / 2, -150, 50, W / 2, -150, 600);
+  grad.addColorStop(0, 'rgba(212,175,55,.10)'); grad.addColorStop(1, 'rgba(212,175,55,0)');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, 450);
+  /* шапка */
+  ctx.fillStyle = '#D4AF37'; chamf(ctx, pad, 26, 34, 32, 8); ctx.fill();
+  ctx.fillStyle = '#161204'; ctx.font = '700 14px Oswald, Arial'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+  ctx.fillText('DP', pad + 17, 44);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#F2DA8C'; ctx.font = '700 24px Oswald, Arial';
+  ctx.fillText(t.name.toUpperCase(), pad + 48, 38);
+  ctx.fillStyle = '#9C957F'; ctx.font = '600 11px Inter, Arial';
+  ctx.fillText(`DUBAI PROJECT · ${FMT_LABEL[t.format]} · ${Object.keys(t.players).length} уч. · ${new Date().toLocaleDateString('ru-RU')}`, pad + 48, 60);
+  const champ = podium(t).first;
+  if (champ) {
+    ctx.textAlign = 'right'; ctx.fillStyle = '#F2DA8C'; ctx.font = '700 16px Oswald, Arial';
+    ctx.fillText(`🏆 ${pname(t, champ).toUpperCase()}`, W - pad, 44);
+    ctx.textAlign = 'left';
+  }
+  /* секции */
+  let oy = headH;
+  for (const d of data) {
+    if (d.lbl) {
+      ctx.fillStyle = '#F2DA8C'; ctx.font = '600 13px Oswald, Arial';
+      ctx.fillText(d.lbl.toUpperCase(), pad, oy + 12);
+      ctx.strokeStyle = 'rgba(138,111,31,.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad + ctx.measureText(d.lbl.toUpperCase()).width + 14, oy + 12); ctx.lineTo(W - pad, oy + 12); ctx.stroke();
+    }
+    oy += secTitleH;
+    drawSectionPNG(ctx, t, d, pad, oy, champ);
+    oy += d.H + secGap;
+  }
+  const fname = (t.name.replace(/[\\/:*?"<>|]/g, '').trim() || 'bracket') + '.png';
+  cv.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = fname;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('Картинка сетки в загрузках', '📸', true);
+  });
+}
+function drawSectionPNG(ctx, t, d, ox, oy, champ) {
+  const byId = {};
+  d.items.forEach(it => { byId[it.m.id] = it; });
+  /* линии */
+  for (const it of d.items) {
+    const m = it.m;
+    if (!m.wTo || !byId[m.wTo.mid]) continue;
+    const tg = byId[m.wTo.mid], sl = tg.slots[m.wTo.slot] || tg.slots[0];
+    const isChamp = champ && m.winner === champ && t.matches[m.wTo.mid].slots[m.wTo.slot].pid === champ;
+    const x1 = ox + it.x + it.w, y1 = oy + it.y + it.h / 2;
+    const x2 = ox + tg.x, y2 = oy + sl.y + sl.h / 2, mx = (x1 + x2) / 2;
+    ctx.strokeStyle = isChamp ? '#D4AF37' : '#3D3526';
+    ctx.lineWidth = isChamp ? 2.5 : 2;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(mx, y1); ctx.lineTo(mx, y2); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+  /* карточки */
+  ctx.textBaseline = 'middle';
+  for (const it of d.items) {
+    const m = it.m, x = ox + it.x, y = oy + it.y;
+    ctx.globalAlpha = m.auto ? 0.35 : 1;
+    const isChamp = champ && m.winner === champ && !m.auto;
+    ctx.fillStyle = '#100E0B'; chamf(ctx, x, y, it.w, it.h, 12); ctx.fill();
+    ctx.strokeStyle = isChamp ? '#D4AF37' : (isReady(m) ? 'rgba(61,220,151,.6)' : (m.winner && !m.auto ? '#3D3526' : '#27221A'));
+    ctx.lineWidth = isChamp ? 1.8 : 1.2;
+    ctx.stroke();
+    ctx.fillStyle = '#5F594A'; ctx.font = '500 8px Oswald, Arial'; ctx.textAlign = 'left';
+    ctx.fillText((isReady(m) ? '● ' : '') + (m.label || ''), x + 12, y + 11);
+    if (isReady(m)) { ctx.fillStyle = '#3DDC97'; ctx.fillText('●', x + 12, y + 11); }
+    it.slots.forEach((sl, si) => {
+      const sy = oy + sl.y, cyy = sy + sl.h / 2;
+      if (si === 1) {
+        ctx.strokeStyle = '#27221A'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x + 1, sy); ctx.lineTo(x + it.w - 1, sy); ctx.stroke();
+      }
+      const inf = slotInfo(t, m, si);
+      if (inf.kind !== 'p') {
+        ctx.fillStyle = '#5F594A'; ctx.font = 'italic 10.5px Inter, Arial';
+        ctx.fillText(inf.text, x + 14, cyy);
+        return;
+      }
+      if (inf.win) {
+        ctx.fillStyle = 'rgba(212,175,55,.10)';
+        ctx.fillRect(x + 1.5, sy + 1, it.w - 3, sl.h - 2);
+        ctx.fillStyle = '#D4AF37'; ctx.fillRect(x + 1.5, sy + 1, 3, sl.h - 2);
+      }
+      const h = hashStr(inf.name) % 360;
+      ctx.fillStyle = `hsl(${h},46%,44%)`;
+      chamf(ctx, x + 11, cyy - 9, 18, 18, 4); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = '800 7px Inter, Arial'; ctx.textAlign = 'center';
+      const ini = inf.name.trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase();
+      ctx.fillText(ini, x + 20, cyy + 0.5);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = inf.win ? '#F2DA8C' : (inf.lose ? '#9C957F' : '#F5F1E6');
+      ctx.font = (inf.win ? '800 ' : '600 ') + '12px Inter, Arial';
+      const maxw = it.w - 78;
+      let nm = inf.name;
+      while (ctx.measureText(nm).width > maxw && nm.length > 2) nm = nm.slice(0, -2) + '…';
+      ctx.fillText(nm, x + 36, inf.mem ? cyy - 6 : cyy);
+      if (inf.mem) {
+        ctx.fillStyle = '#5F594A'; ctx.font = '500 8.5px Inter, Arial';
+        let mm = inf.mem;
+        while (ctx.measureText(mm).width > maxw && mm.length > 2) mm = mm.slice(0, -2) + '…';
+        ctx.fillText(mm, x + 36, cyy + 7);
+      }
+      /* счёт */
+      const bx = x + it.w - 36, by = cyy - 9;
+      if (inf.win) {
+        const g2 = ctx.createLinearGradient(bx, by, bx + 26, by + 18);
+        g2.addColorStop(0, '#F2DA8C'); g2.addColorStop(1, '#D4AF37');
+        ctx.fillStyle = g2;
+      } else ctx.fillStyle = '#201C15';
+      chamf(ctx, bx, by, 26, 18, 5); ctx.fill();
+      ctx.fillStyle = inf.win ? '#161204' : '#9C957F';
+      ctx.font = '800 11px Inter, Arial'; ctx.textAlign = 'center';
+      ctx.fillText(inf.score, bx + 13, cyy + 0.5);
+      ctx.textAlign = 'left';
+    });
+    ctx.globalAlpha = 1;
+  }
+}
+
+async function addPlayerByName(t, nn) {
+  const ent = parseEntry(nn);
+  /* группы в групповой стадии: новенький падает в самую маленькую группу */
+  if (t.format === 'groups' && t.phase === 'groups') {
+    const g = t.groups.reduce((a, b) => (b.pids.length < a.pids.length ? b : a));
+    if (groupHasResults(t, g) && !await uiConfirm(`Новый игрок попадёт в группу ${g.name} — её результаты сбросятся, потому что расписание пересоберётся.`, { ok: 'Продолжить' })) return;
+    const pid = uid();
+    t.players[pid] = { name: ent.name, members: ent.members };
+    g.pids.push(pid);
+    genGroupMatches(t, g);
+    save(); render();
+    toast(`${ent.name} → группа ${g.name}`, '🎮');
+    return;
+  }
+  const bye = findByeSlot(t);
+  if (bye) {
+    const pid = uid();
+    t.players[pid] = { name: ent.name, members: ent.members };
+    seatPlayer(t, bye.m, bye.i, pid);
+    save(); render();
+    toast(`${ent.name} в сетке!`, '🎮');
+    return;
+  }
+  if (t.format === 'groups') {
+    uiAlert('Свободных мест в плей-офф нет. Сбрось плей-офф и добавь игрока в группу.');
+    return;
+  }
+  /* мест нет — расширяем сетку; спрашиваем только если есть сыгранные матчи, которые сотрутся */
+  if (progressOf(t).played > 0 &&
+      !await uiConfirm('Свободных мест нет — сетка пересоберётся побольше, а сыгранные результаты сбросятся.', { title: 'Расширить сетку?', ok: 'Пересобрать' })) return;
+  const pid = uid();
+  t.players[pid] = { name: ent.name, members: ent.members };
+  rebuildElim(t);
+  save(); render();
+  toast(`${ent.name} в сетке — расширил до ${nextPow2(Object.keys(t.players).length)} слотов`, '🎮');
+}
+async function addPlayerFlow(t) {
+  const nn = await uiPrompt('Имя нового участника', '', 'Кто заходит?');
+  if (nn) await addPlayerByName(t, nn);
+}
+/* перемешать посев заново */
+async function reseedFlow(t) {
+  const pr = progressOf(t);
+  if (pr.played > 0 && !await uiConfirm('Сыгранные результаты сбросятся, посев будет новый.', { title: 'Перемешать посев?', ok: 'Перемешать', danger: true })) return;
+  const pids = shuffleArr(Object.keys(t.players));
+  if (t.format === 'groups') {
+    const G = t.groups.length;
+    t.groups.forEach(g => { g.pids = []; });
+    pids.forEach((p, i) => t.groups[i % G].pids.push(p));
+    t.groups.forEach(g => genGroupMatches(t, g));
+  } else {
+    rebuildElim(t, pids);
+  }
+  save(); render();
+  toast('Посев перемешан', '🎲', true);
+}
+/* реванш: новый турнир с теми же игроками */
+function rematch(src) {
+  const names = shuffleArr(Object.values(src.players).map(p => p.name));
+  if (names.length < 2) { uiAlert('В турнире меньше двух игроков.'); return; }
+  createTournament(src.name.replace(/ · реванш.*$/, '') + ' · реванш', src.format, names, Object.assign({}, src.opts));
+}
+async function deletePlayerFlow(t, pid) {
+  const nm = pname(t, pid);
+  if (t.format === 'groups' && t.phase === 'groups') {
+    const g = t.groups.find(x => x.pids.includes(pid));
+    if (!await uiConfirm(`${nm} уйдёт из турнира.` + (g && groupHasResults(t, g) ? ` Результаты группы ${g.name} сбросятся.` : ''), { title: 'Убрать игрока?', ok: 'Убрать', danger: true })) return;
+    if (g) { g.pids = g.pids.filter(p => p !== pid); genGroupMatches(t, g); }
+    delete t.players[pid];
+  } else {
+    if (!await uiConfirm(`${nm} уйдёт из сетки, его место станет свободным. Результаты его матчей откатятся.`, { title: 'Убрать игрока?', ok: 'Убрать', danger: true })) return;
+    removeFromElim(t, pid);
+  }
+  save(); render();
+  toast(`${nm} убран`);
+}
+
+/* ================= drag & drop ================= */
+let drag = null;
+let suppressClick = false;
+function slotEligibleTarget(t, m, si) {
+  const s = m.slots[si];
+  if (m.bracket.startsWith('g:')) return false;
+  if (m.winner && !m.auto) return false;
+  if (s.pid && s.pid !== 'BYE') return true;
+  if (s.pid === 'BYE') return m.round === 1 && (m.bracket === 'wb' || m.bracket === 'po');
+  return false;
+}
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0 && e.button !== 2) return;
+  const t = curT();
+  if (!t || view.screen !== 'tour') return;
+  const nameEl = e.target.closest('.pname[data-mid]');
+  if (nameEl) {
+    const m = t.matches[nameEl.dataset.mid], si = +nameEl.dataset.si;
+    if (!m || m.bracket.startsWith('g:')) return;
+    const pid = m.slots[si].pid;
+    if (!pid || pid === 'BYE') return;
+    if (m.winner && !m.auto) return;
+    drag = { kind: 'slot', pid, mid: m.id, si, sx: e.clientX, sy: e.clientY, started: false };
+    return;
+  }
+  const rowEl = e.target.closest('tr[data-pid]');
+  if (rowEl && !e.target.closest('button,select') && t.phase !== 'po') {
+    drag = { kind: 'group', pid: rowEl.dataset.pid, gid: rowEl.dataset.gid, sx: e.clientX, sy: e.clientY, started: false };
+  }
+});
+function startDrag(e) {
+  const t = curT();
+  drag.started = true;
+  hideTip();
+  document.body.classList.add('dragging');
+  const g = document.createElement('div');
+  g.className = 'dragghost';
+  g.innerHTML = `${avatar(t, drag.pid)}<span>${esc(pname(t, drag.pid))}</span>`;
+  document.body.appendChild(g);
+  drag.ghost = g;
+  if (drag.kind === 'slot') {
+    document.querySelectorAll('.slot[data-mid]').forEach(el => {
+      const m = t.matches[el.dataset.mid], si = +el.dataset.si;
+      if (!m) return;
+      if (el.dataset.mid === drag.mid && si === drag.si) return;
+      if (slotEligibleTarget(t, m, si)) el.classList.add('droptarget');
+    });
+  } else {
+    document.querySelectorAll('.gcard[data-gid]').forEach(el => {
+      if (el.dataset.gid !== drag.gid) el.classList.add('droptarget');
+    });
+  }
+}
+function moveDrag(e) {
+  drag.ghost.style.left = e.clientX + 'px';
+  drag.ghost.style.top = e.clientY + 'px';
+  document.querySelectorAll('.dropover').forEach(el => el.classList.remove('dropover'));
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  const tgt = under && under.closest('.droptarget');
+  if (tgt) tgt.classList.add('dropover');
+}
+function endDrag(e) {
+  const t = curT();
+  const under = document.elementFromPoint(e.clientX, e.clientY);
+  const tgt = under && under.closest('.droptarget');
+  cleanupDrag();
+  if (!t || !tgt) { render(); return; }
+  if (drag.kind === 'slot') {
+    doSwap(t, { mid: drag.mid, slot: drag.si }, { mid: tgt.dataset.mid, slot: +tgt.dataset.si });
+  } else {
+    moveBetweenGroups(t, drag.pid, drag.gid, tgt.dataset.gid);
+  }
+}
+function cleanupDrag() {
+  document.body.classList.remove('dragging');
+  if (drag && drag.ghost) drag.ghost.remove();
+  document.querySelectorAll('.droptarget,.dropover').forEach(el => el.classList.remove('droptarget', 'dropover'));
+}
+document.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.started) {
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 6) return;
+    startDrag(e);
+  }
+  moveDrag(e);
+});
+document.addEventListener('pointerup', e => {
+  if (!drag) return;
+  if (drag.started) {
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 50);
+    endDrag(e);
+  }
+  drag = null;
+});
+document.addEventListener('pointercancel', () => { if (drag) { cleanupDrag(); drag = null; } });
+
+/* панорамирование как на карте: зажал сетку в любом месте (кроме кнопок) — тащишь по обеим осям */
+let pan = null;
+document.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || drag) return;
+  const sec = e.target.closest && e.target.closest('.bsec');
+  if (!sec) return;
+  if (e.target.closest('button, input, select, a')) return;
+  pan = { sec, x: e.clientX, y: e.clientY, sl: sec.scrollLeft, st: sec.scrollTop, moved: false };
+});
+document.addEventListener('pointermove', e => {
+  if (!pan) return;
+  const dx = e.clientX - pan.x, dy = e.clientY - pan.y;
+  if (!pan.moved && Math.hypot(dx, dy) < 4) return;
+  pan.moved = true;
+  pan.sec.classList.add('panning');
+  pan.sec.scrollLeft = pan.sl - dx;
+  pan.sec.scrollTop = pan.st - dy;
+});
+document.addEventListener('pointerup', () => {
+  if (pan) { pan.sec.classList.remove('panning'); pan = null; }
+});
+
+/* Ctrl+колесо над сеткой — зум */
+document.addEventListener('wheel', e => {
+  if (!e.ctrlKey) return;
+  if (!(e.target.closest && e.target.closest('.bsec'))) return;
+  e.preventDefault();
+  setZoom(zoomLvl + (e.deltaY < 0 ? 0.1 : -0.1));
+}, { passive: false });
+document.addEventListener('click', e => {
+  if (suppressClick) { e.stopImmediatePropagation(); e.preventDefault(); suppressClick = false; }
+}, true);
+
+/* ================= render helpers ================= */
+function srcText(t, src) {
+  const m = t.matches[src.mid];
+  if (!m) return '—';
+  const lbl = m.label || 'матча';
+  return (src.take === 'winner' ? 'Победитель ' : 'Проигравший ') + lbl;
+}
+function slotHtml(t, m, si) {
+  const s = m.slots[si];
+  if (s.pid === 'BYE') {
+    const canFill = m.round === 1 && (m.bracket === 'wb' || m.bracket === 'po');
+    return `<div class="slot bye" data-mid="${m.id}" data-si="${si}">
+      <span class="ghost"><span class="av ghosted">+</span>свободный слот</span>
+      ${canFill ? `<button class="mini" data-tip="Добавить сюда игрока" data-action="fill" data-mid="${m.id}" data-si="${si}">＋</button>` : ''}
+    </div>`;
+  }
+  if (!s.pid) {
+    const g = s.src ? srcText(t, s.src) : '—';
+    return `<div class="slot empty" data-si="${si}"><span class="ghost"><span class="av ghosted">·</span>${esc(g)}</span></div>`;
+  }
+  const win = m.winner === s.pid;
+  const lose = m.winner && !win;
+  const canDrag = !m.winner || m.auto;
+  const canRemove = canDrag && (m.bracket === 'wb' || m.bracket === 'po') && !s.src;
+  const sc = s.score == null ? '·' : s.score;
+  const pl = t.players[s.pid];
+  const mem = pl && pl.members ? pl.members.join(' · ') : '';
+  let tip = '';
+  if (mem) tip = pl.members.join(', ') + (isReady(m) ? ' — клик: победа' : '');
+  else if (isReady(m)) tip = 'Клик — победа · Зажми и тяни — переместить';
+  else if (canDrag) tip = 'Зажми и тяни, чтобы переместить';
+  return `<div class="slot ${win ? 'winner' : ''} ${lose ? 'loser' : ''} ${canDrag ? 'draggable' : ''}" data-mid="${m.id}" data-si="${si}">
+    ${avatar(t, s.pid)}
+    <span class="pcol">
+      <button class="pname" data-action="win" data-mid="${m.id}" data-si="${si}" ${tip ? `data-tip="${esc(tip)}"` : ''}>${esc(pname(t, s.pid))}</button>
+      ${mem ? `<span class="pmem">${esc(mem)}</span>` : ''}
+    </span>
+    <span class="tools">
+      <button class="mini" data-tip="Переименовать" data-action="rename" data-pid="${s.pid}">✎</button>
+      ${canRemove ? `<button class="mini del" data-tip="Убрать из сетки" data-action="pdel" data-pid="${s.pid}">✕</button>` : ''}
+    </span>
+    <button class="score" data-action="score" data-mid="${m.id}" data-si="${si}" data-tip="ЛКМ +1 · ПКМ −1">${sc}</button>
+  </div>`;
+}
+function matchHtml(t, m, champ) {
+  const ready = isReady(m);
+  const cls = [
+    m.auto ? 'auto' : '',
+    m.winner && !m.auto ? 'done' : '',
+    ready ? 'ready' : '',
+    champ && m.winner === champ && !m.auto ? 'champ' : ''
+  ].join(' ');
+  const undo = m.winner && !m.auto
+    ? `<button class="mini" data-tip="Отменить результат (откатит и всё дальше)" data-action="undo" data-mid="${m.id}">↺</button>` : '';
+  const status = ready ? `<span class="livedot"></span><span class="livetag">live</span>`
+    : (m.winner && !m.auto ? `<span class="donetick">✔</span>` : '');
+  return `<div class="match cut ${cls}" id="m_${m.id}" data-mid="${m.id}">
+    <div class="mhead">${status}<span>${esc(m.label || '')}</span><span class="sp"></span>${undo}</div>
+    ${slotHtml(t, m, 0)}${slotHtml(t, m, 1)}
+  </div>`;
+}
+function colHtml(head, cnt, matchesHtml) {
+  return `<div class="col"><div class="colhead"><span class="rname">${esc(head)}</span>${cnt ? `<span class="rcnt">${cnt}</span>` : ''}</div><div class="colstack">${matchesHtml}</div></div>`;
+}
+function roundName(cnt, isLast) {
+  if (isLast || cnt === 1) return 'Финал';
+  if (cnt === 2) return '1/2 финала';
+  if (cnt === 4) return '1/4 финала';
+  if (cnt === 8) return '1/8 финала';
+  return '1/' + cnt + ' финала';
+}
+function sectionHtml(title, tag, colsHtml) {
+  return `<div class="bseclbl">${esc(title)}${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</div>
+    <div class="bsec"><div class="zoomw" style="zoom:${zoomLvl}"><svg class="edges"></svg><div class="cols">${colsHtml}</div></div></div>`;
+}
+function byBracket(t, bracket) {
+  return Object.values(t.matches).filter(m => m.bracket === bracket)
+    .sort((a, b) => a.round - b.round || a.idx - b.idx);
+}
+function roundCnt(row) {
+  const real = row.filter(m => !m.auto);
+  if (!real.length) return '';
+  return real.filter(m => m.winner).length + '/' + real.length;
+}
+function elimColsHtml(t, bracket, champ) {
+  const ms = byBracket(t, bracket);
+  const rounds = [...new Set(ms.map(m => m.round))].sort((a, b) => a - b);
+  return rounds.map((r, ri) => {
+    const row = ms.filter(m => m.round === r);
+    const head = bracket === 'lb' ? ('Раунд ' + r) : roundName(row.length, ri === rounds.length - 1);
+    return colHtml(head, roundCnt(row), row.map(m => matchHtml(t, m, champ)).join(''));
+  }).join('');
+}
+
+/* ================= screens ================= */
+function render() {
+  renderTopbar();
+  const app = document.getElementById('app');
+  const key = view.screen + ':' + (view.tid || '');
+  app.classList.toggle('anim', render._last !== key);
+  render._last = key;
+  const scrolls = [...app.querySelectorAll('.bsec')].map(s => ({ l: s.scrollLeft, t: s.scrollTop }));
+  if (view.screen === 'home') app.innerHTML = screenHome();
+  else if (view.screen === 'create') app.innerHTML = screenCreate();
+  else app.innerHTML = screenTour();
+  [...app.querySelectorAll('.bsec')].forEach((s, i) => {
+    if (scrolls[i]) { s.scrollLeft = scrolls[i].l; s.scrollTop = scrolls[i].t; }
+  });
+  renderHints();
+  renderRoster();
+  renderZoombar();
+  renderTimerW();
+  renderTvbar();
+  requestAnimationFrame(drawEdges);
+  if (view.screen === 'tour') {
+    const t = curT();
+    if (t) {
+      const c = podium(t).first;
+      if (c && champSeen[t.id] !== undefined && !champSeen[t.id]) {
+        confetti();
+        toast(`Чемпион — ${pname(t, c)}!`, '🏆', true);
+      }
+      champSeen[t.id] = c;
+    }
+  }
+}
+function renderTopbar() {
+  const t = view.screen === 'tour' ? curT() : null;
+  let mid = '';
+  if (t) {
+    const pr = progressOf(t);
+    mid = `<span class="tname">${esc(t.name)}</span>
+      <button class="mini" data-tip="Переименовать турнир" data-action="trename">✎</button>
+      <span class="badge">${FMT_ICO[t.format]} ${FMT_LABEL[t.format]}</span>
+      <span class="prog ${pr.pct === 100 ? 'full' : ''}" data-tip="Сыграно матчей: ${pr.played} из ${pr.total}">
+        <span class="bar"><i style="width:${pr.pct}%"></i></span>${pr.pct}%</span>`;
+  }
+  const canReseed = t && (t.format !== 'groups' || t.phase === 'groups');
+  const addBtn = t
+    ? `<button class="btn sm ${rosterOpen ? 'primary' : 'ghost'}" data-action="roster" data-tip="Состав: добавляй и убирай игроков в реальном времени">👥 ${Object.keys(t.players).length}</button>
+       <button class="btn sm ghost" data-action="addp" data-tip="Добавить участника: сядет на свободное место или расширит сетку">+ Игрок</button>
+       ${canReseed ? `<button class="btn sm icon ghost" data-action="reseed" data-tip="Перемешать посев заново">🎲</button>` : ''}
+       <button class="btn sm icon ${timerOpen ? 'primary' : 'ghost'}" data-action="timer" data-tip="Таймер матча">⏱</button>
+       <button class="btn sm icon ghost" data-action="shot" data-tip="Скачать сетку картинкой (PNG)">📸</button>
+       <button class="btn sm icon ghost" data-action="tv" data-tip="Режим проектора: чистый полный экран">📺</button>` : '';
+  document.getElementById('topbar').innerHTML = `
+    <button class="brand" data-action="home" data-tip="На главную">
+      <span class="cup">DP</span>
+      <span class="bt">Dubai Project<small>cup manager</small></span>
+    </button>
+    ${mid}
+    <span class="spacer"></span>
+    ${view.screen === 'home'
+      ? `<button class="btn sm ghost" data-action="export" data-tip="Скачать все турниры в JSON-файл">💾 Бэкап</button>
+         <button class="btn sm ghost" data-action="import" data-tip="Загрузить турниры из файла">📂 Импорт</button>`
+      : `${addBtn}<button class="btn sm ghost" data-action="home">← Все турниры</button>`}
+    <button class="btn sm icon ghost" data-action="help" data-tip="Справка">❔</button>
+    ${view.screen === 'home' ? `<button class="btn primary sm" data-action="new">+ Новый турнир</button>` : ''}`;
+}
+function renderTvbar() {
+  let el = document.getElementById('tvbar');
+  if (!tvMode || view.screen !== 'tour') { if (el) el.remove(); return; }
+  const t = curT();
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tvbar';
+    el.className = 'tvbar';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `<span class="tvname">${esc(t ? t.name : '')}</span>
+    <button class="mini" data-action="tv" data-tip="Выйти из режима проектора (Esc)">✕</button>`;
+}
+function renderZoombar() {
+  let el = document.getElementById('zoombar');
+  const show = view.screen === 'tour' && document.querySelector('.bsec');
+  if (!show) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'zoombar';
+    el.className = 'zoombar';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `
+    <button class="mini" data-action="zoomout" data-tip="Отдалить (Ctrl+колесо)">−</button>
+    <button class="mini" id="zoomLbl" data-action="zoomreset" data-tip="Сбросить масштаб">${Math.round(zoomLvl * 100)}%</button>
+    <button class="mini" data-action="zoomin" data-tip="Приблизить (Ctrl+колесо)">＋</button>`;
+}
+function renderRoster() {
+  let el = document.getElementById('roster');
+  const t = view.screen === 'tour' ? curT() : null;
+  if (!t || !rosterOpen) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'roster';
+    el.className = 'roster cut';
+    document.body.appendChild(el);
+  }
+  const rows = Object.keys(t.players).map(pid => {
+    let loc = '';
+    if (t.format === 'groups') {
+      const g = t.groups.find(x => x.pids.includes(pid));
+      loc = g ? 'гр. ' + g.name : '';
+    }
+    const pl = t.players[pid];
+    const mem = pl && pl.members ? pl.members.join(' · ') : '';
+    return `<div class="rrow">
+      ${avatar(t, pid)}
+      <span class="rcol"><button class="rname" data-action="pstats" data-name="${esc(pname(t, pid))}" data-tip="Статистика">${esc(pname(t, pid))}</button>${mem ? `<span class="rmem">${esc(mem)}</span>` : ''}</span>
+      <span class="rloc">${esc(loc)}</span>
+      <span class="rtools">
+        <button class="mini" data-tip="Переименовать" data-action="rename" data-pid="${pid}">✎</button>
+        <button class="mini del" data-tip="Убрать из турнира" data-action="rdel" data-pid="${pid}">✕</button>
+      </span>
+    </div>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="rhead">Состав<span class="sp"></span><span class="rcnt-l" style="color:var(--muted);letter-spacing:.1em">${Object.keys(t.players).length}</span>
+      <button class="mini" data-tip="Закрыть" data-action="roster">✕</button></div>
+    <div class="raddrow">
+      <input type="text" id="rosterInput" placeholder="Имя нового игрока…" maxlength="40">
+      <button class="btn sm primary" data-action="raddgo">＋</button>
+    </div>
+    <div class="rlist">${rows || '<div class="rempty">Никого нет</div>'}</div>`;
+}
+function renderHints() {
+  const el = document.getElementById('hints');
+  if (view.screen !== 'tour') { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = `
+    <span class="hchip"><span class="ic">👆</span><b>клик по имени</b>&nbsp;— победа</span>
+    <span class="hchip"><span class="ic">✊</span><b>зажми и тяни</b>&nbsp;— перенос игрока</span>
+    <span class="hchip"><span class="ic">🔢</span><b>счёт:</b>&nbsp;ЛКМ +1 · ПКМ −1</span>
+    <span class="hchip"><span class="ic">↺</span>отменить</span>
+    <span class="hchip"><span class="ic">⌨</span><b>Ctrl+Z</b>&nbsp;— откатить что угодно</span>
+    <span class="hchip"><span class="ic">✕</span>убрать игрока</span>
+    <span class="hchip"><span class="ic">✎</span>переименовать</span>`;
+}
+
+const SKYLINE = `<svg class="skyline" viewBox="0 0 1200 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" height="190">
+  <path fill="rgba(212,175,55,.10)" d="M0 200 L0 150 L40 150 L40 130 L70 130 L70 155 L100 155 L100 110 L120 110 L120 90 L135 90 L135 140 L170 140 L170 120 L200 120 L200 160 L240 160 L240 100 L260 100 L260 80 L275 80 L275 130 L310 130 L310 145 L350 145 L350 95 L370 95 L370 70 L385 70 L385 120 L420 120 L420 140 L460 140 L460 115 L490 115 L490 135 L530 135 L530 90 L555 90 L555 60 L570 60 L570 25 L578 25 L583 2 L588 25 L596 25 L596 60 L612 60 L612 95 L640 95 L640 135 L680 135 L680 110 L710 110 L710 140 L750 140 L750 100 L775 100 L775 75 L790 75 L790 125 L830 125 L830 150 L870 150 L870 105 L895 105 L895 130 L930 130 L930 145 L970 145 L970 115 L1000 115 L1000 90 L1015 90 L1015 135 L1050 135 L1050 120 L1080 120 L1080 155 L1120 155 L1120 130 L1160 130 L1160 150 L1200 150 L1200 200 Z"/>
+  <path fill="rgba(212,175,55,.05)" d="M0 200 L0 170 L60 170 L60 158 L130 158 L130 172 L210 172 L210 150 L290 150 L290 168 L380 168 L380 152 L470 152 L470 170 L560 170 L560 145 L650 145 L650 165 L740 165 L740 150 L830 150 L830 170 L920 170 L920 155 L1010 155 L1010 172 L1100 172 L1100 160 L1200 160 L1200 200 Z"/>
+</svg>`;
+
+function screenHome() {
+  let totalP = 0, totalM = 0;
+  DB.tournaments.forEach(t => {
+    totalP += Object.keys(t.players).length;
+    totalM += Object.values(t.matches).filter(m => m.winner && !m.auto).length;
+  });
+  const cards = DB.tournaments.map(t => {
+    const p = podium(t);
+    const pr = progressOf(t);
+    const np = Object.keys(t.players).length;
+    return `<div class="tcard cut">
+      <span class="fico">${FMT_ICO[t.format]}</span>
+      <div class="tt">${esc(t.name)}</div>
+      <div class="meta">${FMT_LABEL[t.format]} · ${np} уч. · ${new Date(t.createdAt).toLocaleDateString('ru-RU')}</div>
+      ${p.first ? `<div class="champline">🏆 ${esc(pname(t, p.first))}</div>` : `<div class="meta">в процессе — ${pr.pct}%</div>`}
+      <div class="pbar ${pr.pct === 100 ? 'full' : ''}"><i style="width:${pr.pct}%"></i></div>
+      <div class="row">
+        <button class="btn sm primary" data-action="open" data-tid="${t.id}">Открыть</button>
+        <button class="btn sm ghost" data-action="rematch" data-tid="${t.id}" data-tip="Реванш: новый турнир с теми же игроками">🔁</button>
+        <button class="btn sm danger" data-action="del" data-tid="${t.id}">Удалить</button>
+      </div>
+    </div>`;
+  }).join('');
+  const hof = hallOfFame();
+  const hofHtml = hof.length ? `<div class="hof cut">
+      <div class="hofhead">🏛 Зал славы</div>
+      ${hof.map((r, i) => `<div class="hofrow" data-action="pstats" data-name="${esc(r.name)}" data-tip="Статистика игрока">
+        <span class="hofn">${i + 1}</span>
+        ${avatarByName(r.name)}
+        <span class="hofname">${esc(r.name)}</span>
+        <span class="hofmed">${r.g ? `🥇×${r.g}` : ''} ${r.s ? `🥈×${r.s}` : ''} ${r.b ? `🥉×${r.b}` : ''}</span>
+      </div>`).join('')}
+    </div>` : '';
+  return `<div class="hero">
+      ${SKYLINE}
+      <div class="eyebrow">local cup manager</div>
+      <h1>Dubai Project</h1>
+      <div class="rule"><span>Свои турики — свои правила</span></div>
+      <p>Сетки, группы, решафлы и матч за третье место. Всё хранится прямо в этом браузере — интернет не нужен.</p>
+    </div>
+    ${DB.tournaments.length ? `<div class="statrow">
+      <div class="stat cut"><b>${DB.tournaments.length}</b><span>турниров</span></div>
+      <div class="stat cut"><b>${totalP}</b><span>игроков</span></div>
+      <div class="stat cut"><b>${totalM}</b><span>матчей сыграно</span></div>
+    </div>` : ''}
+    ${hofHtml}
+    ${cards ? `<div class="tlist">${cards}</div>`
+      : `<div class="empty"><span class="big">🏟️</span>Пока пусто. Жми <b>«+ Новый турнир»</b> сверху — займёт полминуты.</div>`}`;
+}
+
+function screenCreate() {
+  const svgSingle = `<svg width="46" height="30" viewBox="0 0 46 30"><path class="ln" d="M2 5h10v5h8M2 15h10v-5M2 25h10v-3h8M2 19h10v3M20 10h10v5h12M20 22h10v-7"/></svg>`;
+  const svgDouble = `<svg width="46" height="30" viewBox="0 0 46 30"><path class="ln" d="M2 4h10v4h8M2 12h10v-4M20 8h14M2 21h10v3h8M2 27h10v-3M20 24h8v-9h12"/></svg>`;
+  const svgGroups = `<svg width="46" height="30" viewBox="0 0 46 30"><circle class="dt" cx="5" cy="6" r="2.4"/><circle class="dt" cx="5" cy="15" r="2.4"/><circle class="dt" cx="5" cy="24" r="2.4"/><circle class="dt" cx="14" cy="6" r="2.4"/><circle class="dt" cx="14" cy="15" r="2.4"/><circle class="dt" cx="14" cy="24" r="2.4"/><path class="ln" d="M22 15h6M30 9h6v6h8M30 21h6v-6"/></svg>`;
+  return `<form class="form cut" id="createForm">
+    <h2>Новый турнир</h2>
+    <div class="frow">
+      <label class="lbl" for="cName">Название</label>
+      <input type="text" id="cName" placeholder="Например: Пятничный кубок" maxlength="60" required>
+    </div>
+    <div class="frow">
+      <span class="lbl">Формат</span>
+      <div class="fmt3">
+        <label class="fmtopt"><input type="radio" name="fmt" value="single" checked>
+          <span class="card">${svgSingle}Олимпийка<small>проиграл — вылетел</small></span></label>
+        <label class="fmtopt"><input type="radio" name="fmt" value="double">
+          <span class="card">${svgDouble}Double elim<small>вторая жизнь в нижней сетке</small></span></label>
+        <label class="fmtopt"><input type="radio" name="fmt" value="groups">
+          <span class="card">${svgGroups}Группы<small>круговая, потом плей-офф</small></span></label>
+      </div>
+    </div>
+    <div class="frow">
+      <label class="lbl" for="cPlayers">Участники — по одному на строку. Команда: «Название: игрок1, игрок2»</label>
+      <textarea id="cPlayers" rows="8" placeholder="Иван&#10;Пётр&#10;Дикие Псы: Вася, Петя&#10;..."></textarea>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+        <div class="pcount" id="pCount" style="margin:0;flex:1"></div>
+        <button type="button" class="btn sm ghost" data-action="shufflecreate" data-tip="Случайный порядок — случайный посев">🎲 Перемешать</button>
+      </div>
+    </div>
+    <div class="frow inline" id="optThird">
+      <label class="chk"><input type="checkbox" id="cThird" checked> Матч за 3-е место</label>
+    </div>
+    <div class="frow inline hidden" id="optGroups">
+      <label class="chk">Групп:&nbsp;<select id="cGroups">
+        <option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>8</option>
+      </select></label>
+      <span class="note">Сколько проходят дальше — выберешь, когда группы доиграют.</span>
+    </div>
+    <div class="frow" style="margin-top:26px">
+      <button type="submit" class="btn primary">Создать турнир 🚀</button>
+      <button type="button" class="btn ghost" data-action="home" style="margin-left:10px">Отмена</button>
+    </div>
+  </form>`;
+}
+
+function coachHtml() {
+  if (localStorage.getItem('turnir_coach2')) return '';
+  return `<div class="coach cut">
+    <span class="ic">💡</span>
+    <span class="tx"><b>Как судить:</b> кликни по имени победителя — он пройдёт дальше сам. <b>Перенести игрока</b> — зажми его имя (ЛКМ или ПКМ) и тяни на другой слот или группу.
+      <span class="krow">
+        <span>🔢 счёт — ЛКМ +1, ПКМ −1</span>
+        <span>↺ откатить результат</span>
+        <span>✕ убрать игрока</span>
+        <span>＋ добавить в свободный слот</span>
+      </span>
+    </span>
+    <button class="btn sm" data-action="coachoff">Понятно</button>
+  </div>`;
+}
+function podiumHtml(t) {
+  const p = podium(t);
+  if (!p.first) return '';
+  return `<div class="podium cut">
+    <span class="pchamp">${avatar(t, p.first, true)}
+      <span><span class="eyebrow">Чемпион турнира</span><span class="champ-name">${esc(pname(t, p.first))}</span></span>
+    </span>
+    ${p.second ? `<span class="minor">🥈 ${avatar(t, p.second)} <b>${esc(pname(t, p.second))}</b></span>` : ''}
+    ${p.third ? `<span class="minor">🥉 ${avatar(t, p.third)} <b>${esc(pname(t, p.third))}</b></span>` : ''}
+  </div>`;
+}
+
+function screenTour() {
+  const t = curT();
+  if (!t) { view = { screen: 'home', tid: null }; return screenHome(); }
+  const champ = podium(t).first;
+  let html = coachHtml() + podiumHtml(t);
+
+  if (t.format === 'single') {
+    let cols = elimColsHtml(t, 'wb', champ);
+    if (t.thirdId) cols += colHtml('Матч за 3-е место', '', matchHtml(t, t.matches[t.thirdId], null));
+    html += sectionHtml('Сетка', Object.keys(t.players).length + ' игроков', cols);
+  } else if (t.format === 'double') {
+    let cols = elimColsHtml(t, 'wb', champ);
+    const gf = t.matches[t.gfId];
+    cols += colHtml('Гранд-финал', '', matchHtml(t, gf, champ));
+    if (gf2Needed(t))
+      cols += colHtml('Решающий матч', '', matchHtml(t, t.matches[t.gf2Id], champ));
+    html += sectionHtml('Верхняя сетка', Object.keys(t.players).length + ' игроков', cols);
+    if (byBracket(t, 'lb').length)
+      html += sectionHtml('Нижняя сетка', 'вторая жизнь', elimColsHtml(t, 'lb', champ));
+  } else {
+    html += groupsHtml(t, champ);
+    if (t.phase === 'po') {
+      let cols = elimColsHtml(t, 'po', champ);
+      if (t.thirdId) cols += colHtml('Матч за 3-е место', '', matchHtml(t, t.matches[t.thirdId], null));
+      html += sectionHtml('Плей-офф', '', cols);
+    }
+  }
+  return html;
+}
+
+function groupsHtml(t, champ) {
+  const locked = t.phase === 'po';
+  const adv = t.opts.advance || 2;
+  let html = `<div class="pophdr cut">
+    <span class="tl">Групповой этап</span>`;
+  if (!locked) {
+    html += `<span class="note">Тяни игрока из таблицы в другую группу — составы пересоберутся.</span>
+      <span class="spacer" style="flex:1"></span>
+      <label class="chk" data-tip="Сколько лучших из каждой группы выйдут в плей-офф">Проходят:&nbsp;<select id="poAdv">
+        ${[1,2,3,4].map(n => `<option value="${n}" ${n === adv ? 'selected' : ''}>топ-${n}</option>`).join('')}
+      </select></label>
+      <label class="chk"><input type="checkbox" id="poThird" ${t.opts.thirdPlace ? 'checked' : ''}> матч за 3-е</label>
+      <button class="btn primary sm" data-action="makepo">Сформировать плей-офф →</button>`;
+  } else {
+    html += `<span class="note">Плей-офф сформирован — группы закрыты.</span>
+      <span class="spacer" style="flex:1"></span>
+      <button class="btn sm danger" data-action="resetpo" data-tip="Удалить сетку плей-офф и снова открыть группы">↺ Сбросить плей-офф</button>`;
+  }
+  html += `</div><div class="gwrap">`;
+
+  for (const g of t.groups) {
+    const st = standings(t, g);
+    const gms = groupMatches(t, g);
+    const gp = gms.filter(m => m.winner).length;
+    const rows = st.map((s, i) => {
+      const q = i < adv;
+      const tools = !locked
+        ? `<span class="grow-tools">
+             <button class="mini" data-tip="Переименовать" data-action="rename" data-pid="${s.pid}">✎</button>
+             <button class="mini del" data-tip="Убрать из турнира" data-action="gdel" data-pid="${s.pid}" data-gid="${g.id}">✕</button>
+           </span>`
+        : `<span class="grow-tools"><button class="mini" data-tip="Переименовать" data-action="rename" data-pid="${s.pid}">✎</button></span>`;
+      return `<tr class="${q ? 'q' : ''}" data-pid="${s.pid}" data-gid="${g.id}">
+        <td class="num">${i + 1}</td>
+        <td class="pcell">${avatar(t, s.pid)}<span>${esc(pname(t, s.pid))}</span>${q ? `<span class="qbadge" data-tip="Проходит в плей-офф при текущей таблице">Q</span>` : ''}${tools}</td>
+        <td class="num">${s.w}</td><td class="num">${s.l}</td>
+        <td class="num">${s.sf - s.sa > 0 ? '+' : ''}${s.sf - s.sa}</td>
+      </tr>`;
+    }).join('');
+    const matches = gms.map(m => gmHtml(t, m, locked)).join('');
+    html += `<div class="gcard cut" data-gid="${g.id}">
+      <div class="ghead"><h3>Группа ${esc(g.name)}</h3><span class="gprog">${gp}/${gms.length} сыграно</span><span class="sp"></span>
+        ${!locked ? `<button class="mini" data-tip="Добавить игрока в группу ${esc(g.name)}" data-action="gadd" data-gid="${g.id}" style="font-size:15px">＋</button>` : ''}
+      </div>
+      <table class="stand">
+        <tr><th class="num">#</th><th>Игрок</th><th class="num" data-tip="Победы">В</th><th class="num" data-tip="Поражения">П</th><th class="num" data-tip="Разница счёта">±</th></tr>
+        ${rows}
+      </table>
+      <div class="gmatches">${matches || '<span class="note">Меньше двух игроков — матчей нет.</span>'}</div>
+    </div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+function gmHtml(t, m, locked) {
+  const r = isReady(m) && !locked;
+  const w0 = m.winner && m.winner === m.slots[0].pid, w1 = m.winner && m.winner === m.slots[1].pid;
+  const s0 = m.slots[0].score == null ? '·' : m.slots[0].score;
+  const s1 = m.slots[1].score == null ? '·' : m.slots[1].score;
+  const dis = locked ? 'disabled' : '';
+  return `<div class="gm cut ${r ? 'ready' : ''}">
+    <button class="pname ${w0 ? 'winner' : ''}" ${dis} data-action="win" data-mid="${m.id}" data-si="0" ${r ? 'data-tip="Клик — победа"' : ''}>${esc(pname(t, m.slots[0].pid))}</button>
+    <button class="score" ${dis} data-action="score" data-mid="${m.id}" data-si="0" data-tip="ЛКМ +1 · ПКМ −1">${s0}</button>
+    <span class="vs">:</span>
+    <button class="score" ${dis} data-action="score" data-mid="${m.id}" data-si="1" data-tip="ЛКМ +1 · ПКМ −1">${s1}</button>
+    <button class="pname right ${w1 ? 'winner' : ''}" ${dis} data-action="win" data-mid="${m.id}" data-si="1" ${r ? 'data-tip="Клик — победа"' : ''}>${esc(pname(t, m.slots[1].pid))}</button>
+    ${m.winner && !locked ? `<button class="mini" data-tip="Отменить результат" data-action="undo" data-mid="${m.id}">↺</button>` : '<span></span>'}
+  </div>`;
+}
+
+/* ================= help ================= */
+function showHelp() {
+  const ov = openModal(`<div class="help">
+    <div class="mtitle">Как пользоваться</div>
+    <h4>🎮 Судейство</h4>
+    <p><b>Клик по имени игрока</b> — он победил и проходит дальше. Счёт необязателен: по умолчанию запишется 1:0.</p>
+    <p><b>Счёт</b> (типа 2:1): кликай по цифре — <span class="key">ЛКМ</span> +1, <span class="key">ПКМ</span> −1.</p>
+    <p><b>↺ Отменить</b> — откатывает результат матча и всё, что от него зависело дальше по сетке.</p>
+    <p><span class="key">Ctrl+Z</span> — откатить вообще любое последнее действие (результат, удаление игрока, решафл и т.п.), можно несколько раз подряд.</p>
+    <h4>🔀 Перемещения и решафлы</h4>
+    <p><b>Зажми имя игрока</b> (ЛКМ или ПКМ) <b>и тяни</b>: на другого игрока — поменяются местами, на свободный слот — переедет туда, на другую группу — перейдёт в неё.</p>
+    <p><b>＋ на свободном слоте</b> или кнопка <b>«+ Игрок»</b> сверху — добавить участника. Если мест нет, сетка пересоберётся побольше (с подтверждением).</p>
+    <p><b>✕</b> — убрать игрока: его место станет свободным, зависимые результаты откатятся.</p>
+    <p><b>✎</b> — переименовать: имя обновится во всей сетке и таблицах.</p>
+    <p><b>👥</b> — панель состава: добавляй и убирай игроков списком в реальном времени.</p>
+    <p><b>🎲</b> — перемешать посев заново (если уже есть результаты — спросит подтверждение). На главной <b>🔁</b> — реванш: новый турнир с теми же игроками.</p>
+    <h4>👥 Команды</h4>
+    <p>Вместо имени пиши <b>«Название: игрок1, игрок2»</b> — и при создании, и в панели 👥, и в ✎. Состав показывается под названием в сетке.</p>
+    <h4>🗺 Большие сетки</h4>
+    <p><b>Зум:</b> <span class="key">Ctrl</span>+колесо мыши над сеткой или кнопки <b>− / +</b> слева внизу.</p>
+    <p><b>Перемещение:</b> зажми сетку в любом месте (кроме имён и кнопок) и тяни в любую сторону, как карту.</p>
+    <p><b>Добавление при полной сетке:</b> сетка расширится сама; если уже есть сыгранные матчи — спросит, потому что они сбросятся (Ctrl+Z вернёт).</p>
+    <h4>🏆 Форматы</h4>
+    <p><b>Олимпийка</b> — проиграл и вылетел; опционально матч за 3-е место.</p>
+    <p><b>Double elim</b> — после поражения падаешь в нижнюю сетку, второе поражение — вылет. Если победитель нижней берёт гранд-финал, играется решающий матч.</p>
+    <p><b>Группы</b> — круговая внутри групп, потом топ-N из каждой выходят в плей-офф.</p>
+    <h4>📺 Экран и шеринг</h4>
+    <p><b>📺 Режим проектора</b> — чистый полный экран без кнопок, для вывода на телик. Выход — <span class="key">Esc</span>.</p>
+    <p><b>📸</b> — скачать всю сетку одной картинкой (PNG), удобно кинуть в чат.</p>
+    <p><b>⏱</b> — таймер матча: пресеты 5/10/15 минут, в конце пикнет.</p>
+    <p><b>Статистика игрока</b> — клик по игроку в Зале славы или в панели 👥: медали, винрейт, история турниров.</p>
+    <h4>💾 Данные</h4>
+    <p>Всё хранится в этом браузере. <b>Бэкап</b> — скачать JSON, <b>Импорт</b> — восстановить или перенести на другой комп.</p>
+    <div class="mrow" style="margin-top:16px"><button class="btn primary" id="mOk">Всё понятно</button></div>
+  </div>`, true);
+  ov.querySelector('#mOk').onclick = () => closeModal(ov);
+  ov.onclick = e => { if (e.target === ov) closeModal(ov); };
+}
+
+/* ================= connector lines ================= */
+function drawEdges() {
+  const t = view.screen === 'tour' ? curT() : null;
+  document.querySelectorAll('.bsec').forEach(sec => {
+    const svg = sec.querySelector('svg.edges');
+    if (!svg || !t) return;
+    const z = zoomLvl || 1;        /* контент внутри .zoomw отмасштабирован — переводим в его координаты */
+    svg.setAttribute('width', Math.ceil(sec.scrollWidth / z));
+    svg.setAttribute('height', Math.ceil(sec.scrollHeight / z));
+    svg.innerHTML = '';
+    const champ = podium(t).first;
+    const sr = sec.getBoundingClientRect();
+    sec.querySelectorAll('.match').forEach(el => {
+      const m = t.matches[el.dataset.mid];
+      if (!m || !m.wTo) return;
+      const tEl = sec.querySelector('#m_' + m.wTo.mid);
+      if (!tEl) return;
+      const sEl = tEl.querySelector('.slot[data-si="' + m.wTo.slot + '"]') || tEl;
+      const r1 = el.getBoundingClientRect(), r2 = sEl.getBoundingClientRect(), r2c = tEl.getBoundingClientRect();
+      const x1 = (r1.right - sr.left + sec.scrollLeft) / z;
+      const y1 = (r1.top + r1.height / 2 - sr.top + sec.scrollTop) / z;
+      const x2 = (r2c.left - sr.left + sec.scrollLeft) / z;
+      const y2 = (r2.top + r2.height / 2 - sr.top + sec.scrollTop) / z;
+      const mx = (x1 + x2) / 2;
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', `M${x1},${y1} L${mx},${y1} L${mx},${y2} L${x2},${y2}`);
+      if (champ && m.winner === champ && t.matches[m.wTo.mid].slots[m.wTo.slot].pid === champ)
+        p.setAttribute('class', 'champ');
+      svg.appendChild(p);
+    });
+  });
+}
+window.addEventListener('resize', () => requestAnimationFrame(drawEdges));
+
+/* ================= events ================= */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-action]');
+  if (!el || el.disabled) return;
+  const a = el.dataset.action;
+  const t = curT();
+
+  if (a === 'home') { view = { screen: 'home', tid: null }; render(); }
+  else if (a === 'new') { view = { screen: 'create', tid: null }; render(); }
+  else if (a === 'help') showHelp();
+  else if (a === 'coachoff') { localStorage.setItem('turnir_coach2', '1'); render(); }
+  else if (a === 'open') { view = { screen: 'tour', tid: el.dataset.tid }; render(); }
+  else if (a === 'del') {
+    const tt = DB.tournaments.find(x => x.id === el.dataset.tid);
+    if (tt && await uiConfirm(`Турнир «${tt.name}» удалится навсегда, вместе с результатами.`, { title: 'Удалить турнир?', ok: 'Удалить', danger: true })) {
+      DB.tournaments = DB.tournaments.filter(x => x.id !== el.dataset.tid);
+      save(); render();
+      toast('Турнир удалён');
+    }
+  }
+  else if (a === 'export') exportAll();
+  else if (a === 'import') document.getElementById('importFile').click();
+  else if (a === 'addp') { if (t) addPlayerFlow(t); }
+  else if (a === 'roster') { rosterOpen = !rosterOpen; render(); if (rosterOpen) { const i = document.getElementById('rosterInput'); if (i) i.focus(); } }
+  else if (a === 'raddgo') {
+    if (!t) return;
+    const inp = document.getElementById('rosterInput');
+    const nn = inp ? inp.value.trim() : '';
+    if (!nn) { if (inp) inp.focus(); return; }
+    await addPlayerByName(t, nn);
+    const ni = document.getElementById('rosterInput');
+    if (ni) ni.focus();
+  }
+  else if (a === 'rdel') { if (t) deletePlayerFlow(t, el.dataset.pid); }
+  else if (a === 'reseed') { if (t) reseedFlow(t); }
+  else if (a === 'zoomin') setZoom(zoomLvl + 0.1);
+  else if (a === 'zoomout') setZoom(zoomLvl - 0.1);
+  else if (a === 'zoomreset') setZoom(1);
+  else if (a === 'tv') {
+    tvMode = !tvMode;
+    document.body.classList.toggle('tv', tvMode);
+    if (tvMode) {
+      rosterOpen = false;
+      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    } else if (document.exitFullscreen && document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    render();
+  }
+  else if (a === 'shot') { if (t) exportImage(t); }
+  else if (a === 'timer') { timerOpen = !timerOpen; renderTimerW(); renderTopbar(); }
+  else if (a === 'tstart') {
+    timer.run = !timer.run;
+    if (timer.run && timer.left > 0) {
+      if (!timer.iv) timer.iv = setInterval(tickTimer, 1000);
+    } else {
+      timer.run = false;
+      if (timer.iv) { clearInterval(timer.iv); timer.iv = null; }
+    }
+    updateTimerUI();
+  }
+  else if (a === 'treset') {
+    timer.left = timer.total; timer.run = false;
+    if (timer.iv) { clearInterval(timer.iv); timer.iv = null; }
+    updateTimerUI();
+  }
+  else if (a === 'tset') {
+    timer.total = (+el.dataset.min) * 60; timer.left = timer.total; timer.run = false;
+    if (timer.iv) { clearInterval(timer.iv); timer.iv = null; }
+    updateTimerUI();
+  }
+  else if (a === 'pstats') showPlayerStats(el.dataset.name);
+  else if (a === 'trename') {
+    if (!t) return;
+    const nn = await uiPrompt('Название турнира', t.name);
+    if (nn) { t.name = nn; save(); render(); }
+  }
+  else if (a === 'rematch') {
+    const src = DB.tournaments.find(x => x.id === el.dataset.tid);
+    if (src) rematch(src);
+  }
+  else if (a === 'shufflecreate') {
+    const ta = document.getElementById('cPlayers');
+    const lines = ta.value.split('\n').map(s => s.trim()).filter(Boolean);
+    if (lines.length < 2) return;
+    ta.value = shuffleArr(lines).join('\n');
+    updatePCount();
+    toast('Порядок перемешан', '🎲');
+  }
+
+  else if (a === 'win') {
+    if (!t) return;
+    setWinner(t, t.matches[el.dataset.mid], +el.dataset.si);
+  }
+  else if (a === 'score') {
+    if (!t) return;
+    const m = t.matches[el.dataset.mid], si = +el.dataset.si;
+    if (!m.slots[si].pid || m.slots[si].pid === 'BYE' || m.auto) return;
+    m.slots[si].score = (m.slots[si].score || 0) + 1;
+    save(); render();
+  }
+  else if (a === 'undo') {
+    if (!t) return;
+    cascadeUndo(t, t.matches[el.dataset.mid]);
+    save(); render();
+    toast('Результат отменён', '↺');
+  }
+  else if (a === 'rename') {
+    if (!t) return;
+    const pid = el.dataset.pid;
+    const p = t.players[pid];
+    const nn = await uiPrompt('Имя — или «Команда: игрок1, игрок2»', p ? entryStr(p) : pname(t, pid));
+    if (nn && p) { const ent = parseEntry(nn); p.name = ent.name; p.members = ent.members; save(); render(); }
+  }
+  else if (a === 'pdel') {
+    if (!t) return;
+    const pid = el.dataset.pid;
+    if (!await uiConfirm(`${pname(t, pid)} уйдёт из сетки, его место станет свободным. Результаты его матчей откатятся.`, { title: 'Убрать игрока?', ok: 'Убрать', danger: true })) return;
+    const nm = pname(t, pid);
+    removeFromElim(t, pid);
+    save(); render();
+    toast(`${nm} убран из сетки`);
+  }
+  else if (a === 'fill') {
+    if (!t) return;
+    const m = t.matches[el.dataset.mid], si = +el.dataset.si;
+    const nn = await uiPrompt('Имя нового участника', '', 'Кто заходит?');
+    if (!nn) return;
+    const pid = uid();
+    t.players[pid] = { name: nn };
+    seatPlayer(t, m, si, pid);
+    save(); render();
+    toast(`${nn} в игре!`, '🎮');
+  }
+  else if (a === 'gadd') {
+    if (!t) return;
+    const g = grp(t, el.dataset.gid);
+    if (groupHasResults(t, g) && !await uiConfirm(`В группе ${g.name} уже есть результаты — они сбросятся, потому что расписание пересоберётся.`, { ok: 'Продолжить' })) return;
+    const nn = await uiPrompt(`Новый игрок в группу ${g.name}`, '', 'Имя');
+    if (!nn) return;
+    const pid = uid();
+    t.players[pid] = { name: nn };
+    g.pids.push(pid);
+    genGroupMatches(t, g);
+    save(); render();
+    toast(`${nn} добавлен в группу ${g.name}`, '🎮');
+  }
+  else if (a === 'gdel') {
+    if (!t) return;
+    const g = grp(t, el.dataset.gid), pid = el.dataset.pid;
+    if (!await uiConfirm(`${pname(t, pid)} уйдёт из турнира.` + (groupHasResults(t, g) ? ` Результаты группы ${g.name} сбросятся.` : ''), { title: 'Убрать игрока?', ok: 'Убрать', danger: true })) return;
+    g.pids = g.pids.filter(p => p !== pid);
+    delete t.players[pid];
+    genGroupMatches(t, g);
+    save(); render();
+  }
+  else if (a === 'makepo') {
+    if (!t) return;
+    const unfinished = t.groups.some(g => groupMatches(t, g).some(m => !m.winner));
+    if (unfinished && !await uiConfirm('Не все матчи в группах сыграны. Сформировать плей-офф по текущим таблицам?', { ok: 'Да, формируем' })) return;
+    const adv = +document.getElementById('poAdv').value;
+    const third = document.getElementById('poThird').checked;
+    makePO(t, adv, third);
+  }
+  else if (a === 'resetpo') {
+    if (!t) return;
+    if (await uiConfirm('Сетка плей-офф и её результаты удалятся, группы снова откроются.', { title: 'Сбросить плей-офф?', ok: 'Сбросить', danger: true })) resetPO(t);
+  }
+});
+
+document.addEventListener('contextmenu', e => {
+  const sc = e.target.closest('[data-action="score"]');
+  if (sc && !sc.disabled) {
+    e.preventDefault();
+    const t = curT();
+    if (!t) return;
+    const m = t.matches[sc.dataset.mid], si = +sc.dataset.si;
+    if (!m.slots[si].pid || m.slots[si].pid === 'BYE' || m.auto) return;
+    m.slots[si].score = Math.max(0, (m.slots[si].score || 0) - 1);
+    save(); render();
+    return;
+  }
+  if (e.target.closest('.pname[data-mid], tr[data-pid]')) e.preventDefault();
+});
+
+document.addEventListener('change', e => {
+  if (e.target.id === 'poAdv') {
+    const t = curT();
+    if (t) { t.opts.advance = +e.target.value; save(); render(); }
+    return;
+  }
+  if (e.target.name === 'fmt') {
+    const v = document.querySelector('input[name=fmt]:checked').value;
+    document.getElementById('optThird').classList.toggle('hidden', v === 'double');
+    document.getElementById('optGroups').classList.toggle('hidden', v !== 'groups');
+    updatePCount();
+  }
+});
+
+function updatePCount() {
+  const el = document.getElementById('pCount');
+  if (!el) return;
+  const names = document.getElementById('cPlayers').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const n = names.length;
+  if (!n) { el.innerHTML = ''; return; }
+  const fmt = document.querySelector('input[name=fmt]:checked').value;
+  if (fmt === 'groups') {
+    const G = +document.getElementById('cGroups').value;
+    el.innerHTML = `Игроков: <b>${n}</b> → ${Math.min(G, n)} групп(ы) по ~${Math.ceil(n / Math.min(G, n))} чел.`;
+  } else {
+    const size = n < 2 ? 2 : nextPow2(n);
+    const byes = size - n;
+    el.innerHTML = `Игроков: <b>${n}</b> → сетка на ${size}` + (byes ? `, свободных слотов: ${byes}` : ' — ровно, без bye!');
+  }
+}
+document.addEventListener('input', e => {
+  if (e.target.id === 'cPlayers') updatePCount();
+});
+
+document.addEventListener('keydown', async e => {
+  if (e.key === 'Enter' && e.target.id === 'rosterInput') {
+    const t = curT();
+    const nn = e.target.value.trim();
+    if (!t || !nn) return;
+    await addPlayerByName(t, nn);
+    const ni = document.getElementById('rosterInput');
+    if (ni) ni.focus();
+  }
+  if (e.key === 'Escape' && rosterOpen && !document.querySelector('.overlay')) {
+    rosterOpen = false;
+    render();
+  }
+  if (e.key === 'Escape' && tvMode && !document.querySelector('.overlay')) {
+    tvMode = false;
+    document.body.classList.remove('tv');
+    render();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || document.querySelector('.overlay')) return;
+    e.preventDefault();
+    undoLast();
+  }
+});
+
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'createForm') return;
+  e.preventDefault();
+  const name = document.getElementById('cName').value.trim() || 'Турнир';
+  const fmt = document.querySelector('input[name=fmt]:checked').value;
+  const names = document.getElementById('cPlayers').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (names.length < 2) { uiAlert('Нужно минимум два участника — впиши их в поле, по одному на строку.'); return; }
+  const opts = {
+    thirdPlace: document.getElementById('cThird').checked,
+    groupCount: +document.getElementById('cGroups').value,
+    advance: 2
+  };
+  createTournament(name, fmt, names, opts);
+});
+
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && tvMode) {
+    tvMode = false;
+    document.body.classList.remove('tv');
+    render();
+  }
+});
+
+document.getElementById('importFile').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const fr = new FileReader();
+  fr.onload = async () => {
+    try {
+      const data = JSON.parse(fr.result);
+      if (!data || !Array.isArray(data.tournaments)) throw new Error('bad');
+      if (!await uiConfirm(`В файле ${data.tournaments.length} турнир(ов). Текущие данные будут заменены.`, { title: 'Импорт', ok: 'Загрузить' })) return;
+      DB = data;
+      save();
+      view = { screen: 'home', tid: null };
+      render();
+      toast('Данные загружены', '📂');
+    } catch (err) { uiAlert('Не получилось прочитать файл — это не экспорт Dubai Project.'); }
+  };
+  fr.readAsText(f);
+  e.target.value = '';
+});
+
+render();
+</script>
+</body>
+</html>
