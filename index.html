@@ -292,6 +292,18 @@ table.stand tr:hover .grow-tools{opacity:1}
 .hchip b{color:var(--text);font-weight:700}
 .hchip .ic{color:var(--gold)}
 
+/* ================= live-шеринг ================= */
+.badge.live{cursor:pointer;border-color:rgba(61,220,151,.55);color:var(--green);font-weight:700}
+.badge.live:hover{background:var(--green-soft)}
+.badge.live.err{border-color:rgba(255,92,92,.6);color:var(--red)}
+.badge.live.sync{border-color:rgba(212,175,55,.6);color:var(--gold)}
+.sharerow{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.sharerow input{flex:1;min-width:0;font-size:12px;padding:7px 10px}
+.sharerow .lab{font-family:var(--disp);font-size:9.5px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);width:72px;flex-shrink:0}
+body.viewer .tools, body.viewer .mhead .mini, body.viewer .grow-tools,
+body.viewer .pophdr .btn, body.viewer .pophdr .chk, body.viewer .raddrow,
+body.viewer .rrow .rtools, body.viewer .slot [data-action="fill"]{display:none !important}
+
 /* ================= режим проектора ================= */
 body.tv .topbar, body.tv .hints, body.tv .coach, body.tv .tools, body.tv .mhead .mini,
 body.tv .grow-tools, body.tv .pophdr .btn, body.tv .pophdr .chk, body.tv #roster{display:none !important}
@@ -442,6 +454,10 @@ function save() {
   const prev = localStorage.getItem(LS_KEY);
   if (prev) { undoStack.push(prev); if (undoStack.length > 50) undoStack.shift(); }
   localStorage.setItem(LS_KEY, JSON.stringify(DB));
+  if (!applyingRemote) {
+    const t = curT();
+    if (t && t.share && !t.share.viewer) schedulePush(t);
+  }
 }
 function undoLast() {
   const prev = undoStack.pop();
@@ -450,6 +466,8 @@ function undoLast() {
   localStorage.setItem(LS_KEY, prev);
   if (view.screen === 'tour' && !curT()) view = { screen: 'home', tid: null };
   render();
+  const t = curT();
+  if (t && t.share && !t.share.viewer) schedulePush(t);
   toast('Действие отменено', '↺');
 }
 function shuffleArr(arr) {
@@ -1075,6 +1093,163 @@ function exportAll() {
   URL.revokeObjectURL(a.href);
   toast('Бэкап сохранён в загрузки', '💾');
 }
+/* ================= live-синхронизация (Supabase) ================= */
+const SB_URL = 'https://zfskwyfhzwhfogcysojg.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmc2t3eWZoendoZm9nY3lzb2pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzE4OTMsImV4cCI6MjA5Njg0Nzg5M30.x4ng_armJqnOEvGulEGyUpxqULQcWRU-IllKNjd_dJQ';
+const PUB_BASE = 'https://ayaninkibay.github.io/dubai-project/';
+let sb = null, sbLoading = null;
+const liveChannels = {};
+const lastSent = {};
+let applyingRemote = false;
+let liveStatus = 'ok';
+let pushTimer = null;
+
+function canEdit(t) { return !(t && t.share && t.share.viewer); }
+function loadSB() {
+  if (sb) return Promise.resolve();
+  if (!sbLoading) {
+    sbLoading = new Promise((res, rej) => {
+      if (window.supabase) return res();
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = () => res();
+      s.onerror = () => { sbLoading = null; rej(new Error('cdn')); };
+      document.head.appendChild(s);
+    }).then(() => { sb = window.supabase.createClient(SB_URL, SB_ANON); });
+  }
+  return sbLoading;
+}
+function setLive(s) { if (liveStatus !== s) { liveStatus = s; renderTopbar(); } }
+function serializeShared(t) {
+  const c = Object.assign({}, t);
+  delete c.share;                       /* ключ судьи наружу не уходит */
+  return JSON.stringify(c);
+}
+function schedulePush(t) {
+  if (!t || !t.share || t.share.viewer) return;
+  setLive('sync');
+  clearTimeout(pushTimer);
+  const tid = t.id;
+  pushTimer = setTimeout(() => { pushNow(tid); }, 400);
+}
+async function pushNow(tid) {
+  const t = DB.tournaments.find(x => x.id === tid);
+  if (!t || !t.share || t.share.viewer) return;
+  const body = serializeShared(t);
+  if (body === lastSent[t.share.id]) { setLive('ok'); return; }
+  try {
+    await loadSB();
+    const { error } = await sb.rpc('publish_tournament', { p_id: t.share.id, p_key: t.share.key, p_data: JSON.parse(body) });
+    if (error) throw error;
+    lastSent[t.share.id] = body;
+    setLive('ok');
+  } catch (e) { setLive('err'); }
+}
+async function ensureLive(t) {
+  if (!t || !t.share || liveChannels[t.share.id]) return;
+  const code = t.share.id;
+  liveChannels[code] = 'pending';
+  try {
+    await loadSB();
+    liveChannels[code] = sb.channel('lt-' + code)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_tournaments', filter: 'id=eq.' + code },
+        payload => { if (payload.new && payload.new.data) applyRemote(code, payload.new.data); })
+      .subscribe();
+  } catch (e) { delete liveChannels[code]; setLive('err'); }
+}
+function applyRemote(code, data) {
+  const body = JSON.stringify(data);
+  if (body === lastSent[code]) return;
+  lastSent[code] = body;
+  const idx = DB.tournaments.findIndex(x => x.share && x.share.id === code);
+  if (idx < 0) return;
+  const share = DB.tournaments[idx].share;
+  const fresh = JSON.parse(body);
+  fresh.share = share;
+  DB.tournaments[idx] = fresh;
+  applyingRemote = true;
+  save();
+  applyingRemote = false;
+  if (view.screen === 'tour' ? view.tid === fresh.id : view.screen === 'home') render();
+}
+async function shareFlow(t) {
+  if (!t.share) {
+    try { await loadSB(); }
+    catch (e) { uiAlert('Не получилось подключиться к серверу синхронизации — проверь интернет.'); return; }
+    t.share = { id: Math.random().toString(36).slice(2, 8), key: uid() + uid(), viewer: false };
+    save();
+    await pushNow(t.id);
+    ensureLive(t);
+    render();
+    toast('Live включён — раздавай ссылки', '🌐', true);
+  }
+  showShareModal(t);
+}
+function showShareModal(t) {
+  const base = location.protocol === 'file:' ? PUB_BASE : location.origin + location.pathname;
+  const vlink = base + '?t=' + t.share.id;
+  const isJudge = !t.share.viewer;
+  const jlink = isJudge ? vlink + '&k=' + t.share.key : null;
+  const ov = openModal(`
+    <div class="mtitle">🌐 Живой турнир</div>
+    <div class="mbody">Сетка синхронизируется через интернет: зрители видят каждый результат сразу${isJudge ? ', судьи могут редактировать вместе с тобой' : ''}.</div>
+    <div class="sharerow"><span class="lab">👁 Зрители</span><input type="text" readonly value="${esc(vlink)}" id="shv"><button class="btn sm" data-copy="shv">Копировать</button></div>
+    ${jlink ? `<div class="sharerow"><span class="lab">✏️ Судьи</span><input type="text" readonly value="${esc(jlink)}" id="shj"><button class="btn sm" data-copy="shj">Копировать</button></div>
+    <div class="note" style="margin-bottom:14px">Судейскую ссылку давай только тем, кому доверяешь судить.</div>` : ''}
+    <div class="mrow">
+      ${isJudge ? `<button class="btn danger" id="mUnshare">Отключить</button>` : ''}
+      <button class="btn primary" id="mOk">Готово</button>
+    </div>`);
+  ov.addEventListener('click', async e => {
+    const cp = e.target.closest('[data-copy]');
+    if (!cp) return;
+    const inp = ov.querySelector('#' + cp.dataset.copy);
+    inp.select();
+    try { await navigator.clipboard.writeText(inp.value); } catch (err) { document.execCommand('copy'); }
+    toast('Ссылка скопирована', '📋');
+  });
+  ov.querySelector('#mOk').onclick = () => closeModal(ov);
+  ov.onclick = e => { if (e.target === ov) closeModal(ov); };
+  const un = ov.querySelector('#mUnshare');
+  if (un) un.onclick = async () => {
+    closeModal(ov);
+    if (!await uiConfirm('Ссылки перестанут работать, зрители и судьи отвалятся. Турнир останется у тебя локально.', { title: 'Отключить live?', ok: 'Отключить', danger: true })) return;
+    try { await loadSB(); await sb.rpc('delete_tournament', { p_id: t.share.id, p_key: t.share.key }); } catch (e) {}
+    if (liveChannels[t.share.id] && liveChannels[t.share.id] !== 'pending') sb.removeChannel(liveChannels[t.share.id]);
+    delete liveChannels[t.share.id];
+    delete lastSent[t.share.id];
+    t.share = null;
+    applyingRemote = true; save(); applyingRemote = false;
+    render();
+    toast('Live отключён');
+  };
+}
+async function initLiveFromURL() {
+  const qp = new URLSearchParams(location.search);
+  const code = qp.get('t');
+  if (!code) return;
+  const key = qp.get('k');
+  try {
+    await loadSB();
+    const { data, error } = await sb.from('live_tournaments').select('data').eq('id', code).maybeSingle();
+    if (error) throw error;
+    if (!data || !data.data) { uiAlert('Турнир по ссылке не найден — возможно, его уже отключили.'); return; }
+    const body = JSON.stringify(data.data);
+    lastSent[code] = body;
+    let t = DB.tournaments.find(x => x.share && x.share.id === code);
+    const myKey = key || (t && t.share && t.share.key) || null;
+    const fresh = JSON.parse(body);
+    fresh.share = { id: code, key: myKey, viewer: !myKey };
+    if (t) DB.tournaments[DB.tournaments.indexOf(t)] = fresh;
+    else DB.tournaments.unshift(fresh);
+    applyingRemote = true; save(); applyingRemote = false;
+    view = { screen: 'tour', tid: fresh.id };
+    ensureLive(fresh);
+    render();
+    toast(fresh.share.viewer ? 'Режим зрителя — сетка обновляется сама' : 'Ты судья — можешь редактировать', fresh.share.viewer ? '👁' : '✏️', true);
+  } catch (e) { uiAlert('Нет связи с сервером синхронизации — проверь интернет.'); }
+}
+
 /* ================= экспорт сетки картинкой ================= */
 function slotInfo(t, m, si) {
   const s = m.slots[si];
@@ -1337,6 +1512,7 @@ document.addEventListener('pointerdown', e => {
   if (e.button !== 0 && e.button !== 2) return;
   const t = curT();
   if (!t || view.screen !== 'tour') return;
+  if (!canEdit(t)) return;
   const nameEl = e.target.closest('.pname[data-mid]');
   if (nameEl) {
     const m = t.matches[nameEl.dataset.mid], si = +nameEl.dataset.si;
@@ -1472,15 +1648,17 @@ function slotHtml(t, m, si) {
     const g = s.src ? srcText(t, s.src) : '—';
     return `<div class="slot empty" data-si="${si}"><span class="ghost"><span class="av ghosted">·</span>${esc(g)}</span></div>`;
   }
+  const ro = !canEdit(t);
   const win = m.winner === s.pid;
   const lose = m.winner && !win;
-  const canDrag = !m.winner || m.auto;
+  const canDrag = (!m.winner || m.auto) && !ro;
   const canRemove = canDrag && (m.bracket === 'wb' || m.bracket === 'po') && !s.src;
   const sc = s.score == null ? '·' : s.score;
   const pl = t.players[s.pid];
   const mem = pl && pl.members ? pl.members.join(' · ') : '';
   let tip = '';
-  if (mem) tip = pl.members.join(', ') + (isReady(m) ? ' — клик: победа' : '');
+  if (mem) tip = pl.members.join(', ') + (isReady(m) && !ro ? ' — клик: победа' : '');
+  else if (ro) tip = '';
   else if (isReady(m)) tip = 'Клик — победа · Зажми и тяни — переместить';
   else if (canDrag) tip = 'Зажми и тяни, чтобы переместить';
   return `<div class="slot ${win ? 'winner' : ''} ${lose ? 'loser' : ''} ${canDrag ? 'draggable' : ''}" data-mid="${m.id}" data-si="${si}">
@@ -1504,7 +1682,7 @@ function matchHtml(t, m, champ) {
     ready ? 'ready' : '',
     champ && m.winner === champ && !m.auto ? 'champ' : ''
   ].join(' ');
-  const undo = m.winner && !m.auto
+  const undo = m.winner && !m.auto && canEdit(t)
     ? `<button class="mini" data-tip="Отменить результат (откатит и всё дальше)" data-action="undo" data-mid="${m.id}">↺</button>` : '';
   const status = ready ? `<span class="livedot"></span><span class="livetag">live</span>`
     : (m.winner && !m.auto ? `<span class="donetick">✔</span>` : '');
@@ -1565,6 +1743,9 @@ function render() {
   renderZoombar();
   renderTimerW();
   renderTvbar();
+  const tt = view.screen === 'tour' ? curT() : null;
+  document.body.classList.toggle('viewer', !!(tt && !canEdit(tt)));
+  if (tt && tt.share) ensureLive(tt);
   requestAnimationFrame(drawEdges);
   if (view.screen === 'tour') {
     const t = curT();
@@ -1584,15 +1765,22 @@ function renderTopbar() {
   if (t) {
     const pr = progressOf(t);
     mid = `<span class="tname">${esc(t.name)}</span>
-      <button class="mini" data-tip="Переименовать турнир" data-action="trename">✎</button>
+      ${canEdit(t) ? `<button class="mini" data-tip="Переименовать турнир" data-action="trename">✎</button>` : ''}
       <span class="badge">${FMT_ICO[t.format]} ${FMT_LABEL[t.format]}</span>
       <span class="prog ${pr.pct === 100 ? 'full' : ''}" data-tip="Сыграно матчей: ${pr.played} из ${pr.total}">
         <span class="bar"><i style="width:${pr.pct}%"></i></span>${pr.pct}%</span>`;
   }
-  const canReseed = t && (t.format !== 'groups' || t.phase === 'groups');
+  const editor = t && canEdit(t);
+  const canReseed = editor && (t.format !== 'groups' || t.phase === 'groups');
+  const shareBtn = t
+    ? (t.share
+      ? `<button class="badge live ${liveStatus === 'err' ? 'err' : (liveStatus === 'sync' ? 'sync' : '')}" data-action="share" data-tip="${t.share.viewer ? 'Live: сетка обновляется автоматически' : 'Live включён — ссылки для зрителей и судей'}">${t.share.viewer ? '👁' : '🟢'} LIVE</button>`
+      : `<button class="btn sm ghost" data-action="share" data-tip="Дать ссылку: зрители смотрят live, судьи редактируют">🌐 Live</button>`)
+    : '';
   const addBtn = t
-    ? `<button class="btn sm ${rosterOpen ? 'primary' : 'ghost'}" data-action="roster" data-tip="Состав: добавляй и убирай игроков в реальном времени">👥 ${Object.keys(t.players).length}</button>
-       <button class="btn sm ghost" data-action="addp" data-tip="Добавить участника: сядет на свободное место или расширит сетку">+ Игрок</button>
+    ? `${shareBtn}
+       <button class="btn sm ${rosterOpen ? 'primary' : 'ghost'}" data-action="roster" data-tip="Состав турнира">👥 ${Object.keys(t.players).length}</button>
+       ${editor ? `<button class="btn sm ghost" data-action="addp" data-tip="Добавить участника: сядет на свободное место или расширит сетку">+ Игрок</button>` : ''}
        ${canReseed ? `<button class="btn sm icon ghost" data-action="reseed" data-tip="Перемешать посев заново">🎲</button>` : ''}
        <button class="btn sm icon ${timerOpen ? 'primary' : 'ghost'}" data-action="timer" data-tip="Таймер матча">⏱</button>
        <button class="btn sm icon ghost" data-action="shot" data-tip="Скачать сетку картинкой (PNG)">📸</button>
@@ -1680,6 +1868,14 @@ function renderHints() {
   const el = document.getElementById('hints');
   if (view.screen !== 'tour') { el.classList.add('hidden'); return; }
   el.classList.remove('hidden');
+  const t = curT();
+  if (t && !canEdit(t)) {
+    el.innerHTML = `
+      <span class="hchip"><span class="ic">👁</span><b>режим зрителя</b>&nbsp;— сетка обновляется сама</span>
+      <span class="hchip"><span class="ic">🗺</span><b>зажми и тяни</b>&nbsp;— перемещение по сетке</span>
+      <span class="hchip"><span class="ic">🔍</span>Ctrl+колесо — зум</span>`;
+    return;
+  }
   el.innerHTML = `
     <span class="hchip"><span class="ic">👆</span><b>клик по имени</b>&nbsp;— победа</span>
     <span class="hchip"><span class="ic">✊</span><b>зажми и тяни</b>&nbsp;— перенос игрока</span>
@@ -1902,18 +2098,19 @@ function groupsHtml(t, champ) {
   return html;
 }
 function gmHtml(t, m, locked) {
-  const r = isReady(m) && !locked;
+  const ro = !canEdit(t);
+  const r = isReady(m) && !locked && !ro;
   const w0 = m.winner && m.winner === m.slots[0].pid, w1 = m.winner && m.winner === m.slots[1].pid;
   const s0 = m.slots[0].score == null ? '·' : m.slots[0].score;
   const s1 = m.slots[1].score == null ? '·' : m.slots[1].score;
-  const dis = locked ? 'disabled' : '';
+  const dis = (locked || ro) ? 'disabled' : '';
   return `<div class="gm cut ${r ? 'ready' : ''}">
     <button class="pname ${w0 ? 'winner' : ''}" ${dis} data-action="win" data-mid="${m.id}" data-si="0" ${r ? 'data-tip="Клик — победа"' : ''}>${esc(pname(t, m.slots[0].pid))}</button>
     <button class="score" ${dis} data-action="score" data-mid="${m.id}" data-si="0" data-tip="ЛКМ +1 · ПКМ −1">${s0}</button>
     <span class="vs">:</span>
     <button class="score" ${dis} data-action="score" data-mid="${m.id}" data-si="1" data-tip="ЛКМ +1 · ПКМ −1">${s1}</button>
     <button class="pname right ${w1 ? 'winner' : ''}" ${dis} data-action="win" data-mid="${m.id}" data-si="1" ${r ? 'data-tip="Клик — победа"' : ''}>${esc(pname(t, m.slots[1].pid))}</button>
-    ${m.winner && !locked ? `<button class="mini" data-tip="Отменить результат" data-action="undo" data-mid="${m.id}">↺</button>` : '<span></span>'}
+    ${m.winner && !locked && !ro ? `<button class="mini" data-tip="Отменить результат" data-action="undo" data-mid="${m.id}">↺</button>` : '<span></span>'}
   </div>`;
 }
 
@@ -1943,6 +2140,9 @@ function showHelp() {
     <p><b>Олимпийка</b> — проиграл и вылетел; опционально матч за 3-е место.</p>
     <p><b>Double elim</b> — после поражения падаешь в нижнюю сетку, второе поражение — вылет. Если победитель нижней берёт гранд-финал, играется решающий матч.</p>
     <p><b>Группы</b> — круговая внутри групп, потом топ-N из каждой выходят в плей-офф.</p>
+    <h4>🌐 Живые турниры</h4>
+    <p><b>🌐 Live</b> в шапке турнира — включает онлайн-трансляцию и даёт две ссылки: <b>зрительскую</b> (смотрят в реальном времени) и <b>судейскую</b> (могут редактировать вместе с тобой). Работает с любых устройств.</p>
+    <p>Зелёный бейдж <b>LIVE</b> — всё синхронизируется; жёлтый — отправка; красный — нет связи (проверь интернет, изменения уйдут при восстановлении после следующего действия).</p>
     <h4>📺 Экран и шеринг</h4>
     <p><b>📺 Режим проектора</b> — чистый полный экран без кнопок, для вывода на телик. Выход — <span class="key">Esc</span>.</p>
     <p><b>📸</b> — скачать всю сетку одной картинкой (PNG), удобно кинуть в чат.</p>
@@ -1991,11 +2191,13 @@ function drawEdges() {
 window.addEventListener('resize', () => requestAnimationFrame(drawEdges));
 
 /* ================= events ================= */
+const MUT_ACTIONS = new Set(['win', 'score', 'undo', 'rename', 'pdel', 'fill', 'gadd', 'gdel', 'makepo', 'resetpo', 'reseed', 'addp', 'trename', 'raddgo', 'rdel']);
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-action]');
   if (!el || el.disabled) return;
   const a = el.dataset.action;
   const t = curT();
+  if (MUT_ACTIONS.has(a) && t && !canEdit(t)) { toast('Режим зрителя — менять нельзя', '👁'); return; }
 
   if (a === 'home') { view = { screen: 'home', tid: null }; render(); }
   else if (a === 'new') { view = { screen: 'create', tid: null }; render(); }
@@ -2062,6 +2264,7 @@ document.addEventListener('click', async e => {
     updateTimerUI();
   }
   else if (a === 'pstats') showPlayerStats(el.dataset.name);
+  else if (a === 'share') { if (t) shareFlow(t); }
   else if (a === 'trename') {
     if (!t) return;
     const nn = await uiPrompt('Название турнира', t.name);
@@ -2165,7 +2368,7 @@ document.addEventListener('contextmenu', e => {
   if (sc && !sc.disabled) {
     e.preventDefault();
     const t = curT();
-    if (!t) return;
+    if (!t || !canEdit(t)) return;
     const m = t.matches[sc.dataset.mid], si = +sc.dataset.si;
     if (!m.slots[si].pid || m.slots[si].pid === 'BYE' || m.auto) return;
     m.slots[si].score = Math.max(0, (m.slots[si].score || 0) - 1);
@@ -2230,6 +2433,8 @@ document.addEventListener('keydown', async e => {
   if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') {
     const tag = (e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || document.querySelector('.overlay')) return;
+    const t = curT();
+    if (view.screen === 'tour' && t && !canEdit(t)) return;
     e.preventDefault();
     undoLast();
   }
@@ -2279,6 +2484,7 @@ document.getElementById('importFile').addEventListener('change', e => {
 });
 
 render();
+initLiveFromURL();
 </script>
 </body>
 </html>
