@@ -425,10 +425,25 @@ canvas.confetti{position:fixed;inset:0;z-index:100;pointer-events:none}
 
 @media (max-width:700px){
   .fmt3{grid-template-columns:1fr}
-  .topbar{flex-wrap:wrap}
-  .topbar .prog{display:none}
-  .podium{padding:17px 20px;gap:18px}
-  .hero h1{font-size:13vw}
+  .topbar{padding:8px 12px}
+  .tbin{flex-wrap:wrap;gap:7px}
+  .tbin .spacer{display:none}
+  .topbar .prog{order:5;width:100%}
+  .topbar .prog .bar{flex:1}
+  .brand .bt small{display:none}
+  .topbar .tname{max-width:38vw;font-size:12px}
+  .btn.sm{padding:6px 11px}
+  .form{padding:24px 18px}
+  .roster{top:auto;bottom:46px;left:8px;right:8px;width:auto;max-height:58vh}
+  .hints{gap:6px;padding:7px 10px}
+  .podium{padding:16px 18px;gap:16px}
+  .hero{padding:24px 0 40px}
+  .hero h1{font-size:14vw}
+  .statrow{gap:8px}
+  .stat{padding:10px 16px}
+  .zoombar{left:8px;bottom:60px}
+  .timerw{bottom:60px}
+  body{overflow-x:hidden}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{transition:none !important;animation:none !important}
