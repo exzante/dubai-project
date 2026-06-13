@@ -153,7 +153,7 @@ textarea{resize:vertical;line-height:1.8}
 .frow{margin-bottom:20px}
 .frow .lbl{display:block;font-family:var(--disp);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.26em;color:var(--muted);margin-bottom:9px}
 .frow input[type=text],.frow textarea,.frow select{width:100%}
-.fmt3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.fmt3{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .fmtopt{position:relative}
 .fmtopt input{position:absolute;opacity:0}
 .fmtopt .card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 10px 13px;border:1px solid var(--line2);
@@ -271,6 +271,8 @@ tr[data-pid] td:nth-child(2){cursor:grab}
 
 /* ================= groups ================= */
 .gwrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(355px,1fr));gap:18px;margin-top:16px}
+.rrwrap{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media (max-width:760px){.rrwrap{grid-template-columns:1fr}}
 .gcard{--c:14px;--bl:var(--line);padding:17px 19px;transition:transform .15s}
 .gcard .ghead{display:flex;align-items:center;gap:11px;margin-bottom:12px}
 .gcard h3{font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2)}
@@ -541,8 +543,9 @@ function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&
 function curT() { return DB.tournaments.find(t => t.id === view.tid) || null; }
 function pname(t, pid) { return pid === 'BYE' ? 'bye' : (t.players[pid] ? t.players[pid].name : '?'); }
 
-const FMT_LABEL = { single: 'Олимпийская сетка', double: 'Double elimination', groups: 'Группы + плей-офф' };
-const FMT_ICO = { single: '⚡', double: '♻️', groups: '👥' };
+const FMT_LABEL = { single: 'Олимпийская сетка', double: 'Double elimination', groups: 'Группы + плей-офф', rr: 'Каждый с каждым' };
+const FMT_ICO = { single: '⚡', double: '♻️', groups: '👥', rr: '🔁' };
+function isGroupStage(t) { return t.format === 'rr' || (t.format === 'groups' && t.phase === 'groups'); }
 
 /* ================= avatars ================= */
 function hashStr(s) { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
@@ -718,6 +721,7 @@ function setWinner(t, m, si) {
   m.winner = m.slots[si].pid;
   propagate(t, m);
   resolveByes(t);
+  sndWin();
   save(); render();
 }
 function cascadeUndo(t, m) {
@@ -860,6 +864,16 @@ function podium(t) {
     if (f && f.winner) { out.first = f.winner; out.second = loserOf(f); }
     const th = M(t.thirdId);
     if (th && th.winner) out.third = th.winner;
+  } else if (t.format === 'rr') {
+    const g = t.groups[0];
+    const total = groupMatches(t, g).length;
+    const played = groupMatches(t, g).filter(m => m.winner).length;
+    if (total > 0 && played === total) {
+      const s = standings(t, g);
+      if (s[0]) out.first = s[0].pid;
+      if (s[1]) out.second = s[1].pid;
+      if (s[2]) out.third = s[2].pid;
+    }
   }
   for (const k of ['first', 'second', 'third']) if (out[k] === 'BYE') out[k] = null;
   return out;
@@ -1004,19 +1018,32 @@ function confetti() {
   })();
 }
 
+/* ================= звук ================= */
+let soundOn = localStorage.getItem('turnir_sound') !== '0';
+let _ac = null;
+function actx() {
+  if (!_ac) { try { _ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { _ac = null; } }
+  if (_ac && _ac.state === 'suspended') _ac.resume();
+  return _ac;
+}
+function tone(freq, start, dur, vol, type) {
+  const a = actx(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'triangle'; o.frequency.value = freq;
+  o.connect(g); g.connect(a.destination);
+  const t0 = a.currentTime + start;
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.start(t0); o.stop(t0 + dur + 0.03);
+}
+function sndWin() { if (soundOn) { tone(620, 0, 0.11, 0.11); tone(932, 0.05, 0.14, 0.09); } }
+function sndChamp() { if (soundOn) [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.12, 0.55, 0.12)); }
+
 /* ================= таймер матча ================= */
 function fmtT(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
-function beep(freq, when, ac) {
-  const o = ac.createOscillator(), g = ac.createGain();
-  o.connect(g); g.connect(ac.destination);
-  o.frequency.value = freq; g.gain.value = 0.12;
-  o.start(ac.currentTime + when); o.stop(ac.currentTime + when + 0.18);
-}
 function beepEnd() {
-  try {
-    const ac = new (window.AudioContext || window.webkitAudioContext)();
-    beep(880, 0, ac); beep(880, 0.3, ac); beep(1175, 0.6, ac);
-  } catch (e) {}
+  if (soundOn) { tone(880, 0, 0.18, 0.13, 'square'); tone(880, 0.3, 0.18, 0.13, 'square'); tone(1175, 0.6, 0.3, 0.13, 'square'); }
   toast('Время вышло!', '⏱', true);
 }
 function tickTimer() {
@@ -1106,6 +1133,10 @@ function createTournament(name, format, names, opts) {
   } else if (format === 'double') {
     buildDouble(t, pids);
     resolveByes(t);
+  } else if (format === 'rr') {
+    t.phase = null;
+    t.groups = [{ id: uid(), name: 'Таблица', pids: pids.slice() }];
+    genGroupMatches(t, t.groups[0]);
   } else {
     t.phase = 'groups';
     const G = Math.min(opts.groupCount, Math.max(1, pids.length));
@@ -1471,16 +1502,17 @@ function drawSectionPNG(ctx, t, d, ox, oy, champ) {
 
 async function addPlayerByName(t, nn) {
   const ent = parseEntry(nn);
-  /* группы в групповой стадии: новенький падает в самую маленькую группу */
-  if (t.format === 'groups' && t.phase === 'groups') {
+  /* групповая стадия / круговая: новенький падает в самую маленькую группу */
+  if (isGroupStage(t)) {
     const g = t.groups.reduce((a, b) => (b.pids.length < a.pids.length ? b : a));
-    if (groupHasResults(t, g) && !await uiConfirm(`Новый игрок попадёт в группу ${g.name} — её результаты сбросятся, потому что расписание пересоберётся.`, { ok: 'Продолжить' })) return;
+    const where = t.format === 'rr' ? 'таблицу' : `группу ${g.name}`;
+    if (groupHasResults(t, g) && !await uiConfirm(`Новый игрок попадёт в ${where} — результаты сбросятся, потому что расписание пересоберётся.`, { ok: 'Продолжить' })) return;
     const pid = uid();
     t.players[pid] = { name: ent.name, members: ent.members };
     g.pids.push(pid);
     genGroupMatches(t, g);
     save(); render();
-    toast(`${ent.name} → группа ${g.name}`, '🎮');
+    toast(`${ent.name} в игре!`, '🎮');
     return;
   }
   const bye = findByeSlot(t);
@@ -1514,7 +1546,7 @@ async function reseedFlow(t) {
   const pr = progressOf(t);
   if (pr.played > 0 && !await uiConfirm('Сыгранные результаты сбросятся, посев будет новый.', { title: 'Перемешать посев?', ok: 'Перемешать', danger: true })) return;
   const pids = shuffleArr(Object.keys(t.players));
-  if (t.format === 'groups') {
+  if (t.format === 'groups' || t.format === 'rr') {
     const G = t.groups.length;
     t.groups.forEach(g => { g.pids = []; });
     pids.forEach((p, i) => t.groups[i % G].pids.push(p));
@@ -1533,9 +1565,9 @@ function rematch(src) {
 }
 async function deletePlayerFlow(t, pid) {
   const nm = pname(t, pid);
-  if (t.format === 'groups' && t.phase === 'groups') {
+  if (isGroupStage(t)) {
     const g = t.groups.find(x => x.pids.includes(pid));
-    if (!await uiConfirm(`${nm} уйдёт из турнира.` + (g && groupHasResults(t, g) ? ` Результаты группы ${g.name} сбросятся.` : ''), { title: 'Убрать игрока?', ok: 'Убрать', danger: true })) return;
+    if (!await uiConfirm(`${nm} уйдёт из турнира.` + (g && groupHasResults(t, g) ? ' Результаты сбросятся.' : ''), { title: 'Убрать игрока?', ok: 'Убрать', danger: true })) return;
     if (g) { g.pids = g.pids.filter(p => p !== pid); genGroupMatches(t, g); }
     delete t.players[pid];
   } else {
@@ -1802,6 +1834,7 @@ function render() {
       const c = podium(t).first;
       if (c && champSeen[t.id] !== undefined && !champSeen[t.id]) {
         confetti();
+        sndChamp();
         toast(`Чемпион — ${pname(t, c)}!`, '🏆', true);
       }
       champSeen[t.id] = c;
@@ -1845,6 +1878,7 @@ function renderTopbar() {
       ? `<button class="btn sm ghost" data-action="export" data-tip="Скачать все турниры в JSON-файл">💾 Бэкап</button>
          <button class="btn sm ghost" data-action="import" data-tip="Загрузить турниры из файла">📂 Импорт</button>`
       : `${addBtn}<button class="btn sm ghost" data-action="home">← Все турниры</button>`}
+    <button class="btn sm icon ghost" data-action="mute" data-tip="${soundOn ? 'Звук включён' : 'Звук выключен'}">${soundOn ? '🔊' : '🔇'}</button>
     <button class="btn sm icon ghost" data-action="help" data-tip="Справка">❔</button>
     ${view.screen === 'home' ? `<button class="btn primary sm" data-action="new">+ Новый турнир</button>` : ''}
   </div>`;
@@ -1995,6 +2029,7 @@ function screenCreate() {
   const svgSingle = `<svg width="46" height="30" viewBox="0 0 46 30"><path class="ln" d="M2 5h10v5h8M2 15h10v-5M2 25h10v-3h8M2 19h10v3M20 10h10v5h12M20 22h10v-7"/></svg>`;
   const svgDouble = `<svg width="46" height="30" viewBox="0 0 46 30"><path class="ln" d="M2 4h10v4h8M2 12h10v-4M20 8h14M2 21h10v3h8M2 27h10v-3M20 24h8v-9h12"/></svg>`;
   const svgGroups = `<svg width="46" height="30" viewBox="0 0 46 30"><circle class="dt" cx="5" cy="6" r="2.4"/><circle class="dt" cx="5" cy="15" r="2.4"/><circle class="dt" cx="5" cy="24" r="2.4"/><circle class="dt" cx="14" cy="6" r="2.4"/><circle class="dt" cx="14" cy="15" r="2.4"/><circle class="dt" cx="14" cy="24" r="2.4"/><path class="ln" d="M22 15h6M30 9h6v6h8M30 21h6v-6"/></svg>`;
+  const svgRR = `<svg width="46" height="30" viewBox="0 0 46 30"><circle class="dt" cx="23" cy="5" r="2.6"/><circle class="dt" cx="9" cy="22" r="2.6"/><circle class="dt" cx="37" cy="22" r="2.6"/><path class="ln" d="M23 5 9 22M23 5 37 22M9 22h28"/></svg>`;
   return `<form class="form cut" id="createForm">
     <h2>Новый турнир</h2>
     <div class="frow">
@@ -2010,6 +2045,8 @@ function screenCreate() {
           <span class="card">${svgDouble}Double elim<small>вторая жизнь в нижней сетке</small></span></label>
         <label class="fmtopt"><input type="radio" name="fmt" value="groups">
           <span class="card">${svgGroups}Группы<small>круговая, потом плей-офф</small></span></label>
+        <label class="fmtopt"><input type="radio" name="fmt" value="rr">
+          <span class="card">${svgRR}Каждый с каждым<small>лига, лучший по таблице</small></span></label>
       </div>
     </div>
     <div class="frow">
@@ -2082,6 +2119,8 @@ function screenTour() {
     html += sectionHtml('Верхняя сетка', Object.keys(t.players).length + ' игроков', cols);
     if (byBracket(t, 'lb').length)
       html += sectionHtml('Нижняя сетка', 'вторая жизнь', elimColsHtml(t, 'lb', champ));
+  } else if (t.format === 'rr') {
+    html += rrHtml(t, champ);
   } else {
     html += groupsHtml(t, champ);
     if (t.phase === 'po') {
@@ -2091,6 +2130,46 @@ function screenTour() {
     }
   }
   return html;
+}
+
+function rrHtml(t, champ) {
+  const ro = !canEdit(t);
+  const g = t.groups[0];
+  const st = standings(t, g);
+  const gms = groupMatches(t, g);
+  const gp = gms.filter(m => m.winner).length;
+  const done = gms.length > 0 && gp === gms.length;
+  const medal = ['🥇', '🥈', '🥉'];
+  const rows = st.map((s, i) => {
+    const tools = ro ? '' : `<span class="grow-tools">
+        <button class="mini" data-tip="Переименовать" data-action="rename" data-pid="${s.pid}">✎</button>
+        <button class="mini del" data-tip="Убрать из турнира" data-action="gdel" data-pid="${s.pid}" data-gid="${g.id}">✕</button>
+      </span>`;
+    const mark = done && i < 3 ? `<span style="margin-left:2px">${medal[i]}</span>` : '';
+    return `<tr class="${done && i === 0 ? 'q' : ''}" data-pid="${s.pid}" data-gid="${g.id}">
+      <td class="num">${i + 1}</td>
+      <td class="pcell">${avatar(t, s.pid)}<span>${esc(pname(t, s.pid))}</span>${mark}${tools}</td>
+      <td class="num">${s.w}</td><td class="num">${s.l}</td>
+      <td class="num">${s.sf - s.sa > 0 ? '+' : ''}${s.sf - s.sa}</td>
+    </tr>`;
+  }).join('');
+  const matches = gms.map(m => gmHtml(t, m, false)).join('');
+  return `<div class="bseclbl">Каждый с каждым<span class="tag">${gp}/${gms.length} сыграно</span></div>
+    <div class="rrwrap">
+      <div class="gcard cut" data-gid="${g.id}">
+        <div class="ghead"><h3>Таблица</h3><span class="sp"></span>
+          ${ro ? '' : `<button class="mini" data-tip="Добавить игрока" data-action="gadd" data-gid="${g.id}" style="font-size:15px">＋</button>`}
+        </div>
+        <table class="stand">
+          <tr><th class="num">#</th><th>Игрок</th><th class="num" data-tip="Победы">В</th><th class="num" data-tip="Поражения">П</th><th class="num" data-tip="Разница счёта">±</th></tr>
+          ${rows}
+        </table>
+      </div>
+      <div class="gcard cut">
+        <div class="ghead"><h3>Матчи</h3><span class="sp"></span><span class="gprog">${gp}/${gms.length}</span></div>
+        <div class="gmatches">${matches || '<span class="note">Меньше двух игроков — матчей нет.</span>'}</div>
+      </div>
+    </div>`;
 }
 
 function groupsHtml(t, champ) {
@@ -2190,6 +2269,7 @@ function showHelp() {
     <p><b>Олимпийка</b> — проиграл и вылетел; опционально матч за 3-е место.</p>
     <p><b>Double elim</b> — после поражения падаешь в нижнюю сетку, второе поражение — вылет. Если победитель нижней берёт гранд-финал, играется решающий матч.</p>
     <p><b>Группы</b> — круговая внутри групп, потом топ-N из каждой выходят в плей-офф.</p>
+    <p><b>Каждый с каждым</b> — круговая лига: все играют со всеми, чемпион определяется по таблице (победы, потом разница счёта).</p>
     <h4>🌐 Живые турниры</h4>
     <p><b>🌐 Live</b> в шапке турнира — включает онлайн-трансляцию и даёт две ссылки: <b>зрительскую</b> (смотрят в реальном времени) и <b>судейскую</b> (могут редактировать вместе с тобой). Работает с любых устройств.</p>
     <p>Зелёный бейдж <b>LIVE</b> — всё синхронизируется; жёлтый — отправка; красный — нет связи (проверь интернет, изменения уйдут при восстановлении после следующего действия).</p>
@@ -2198,6 +2278,7 @@ function showHelp() {
     <p><b>📸</b> — скачать всю сетку одной картинкой (PNG), удобно кинуть в чат.</p>
     <p><b>⏱</b> — таймер матча: пресеты 5/10/15 минут, в конце пикнет.</p>
     <p><b>Статистика игрока</b> — клик по игроку в Зале славы или в панели 👥: медали, винрейт, история турниров.</p>
+    <p><b>🔊 / 🔇</b> — звуки победы и фанфары чемпиону. Клик по иконке в шапке — включить/выключить.</p>
     <h4>💾 Данные</h4>
     <p>Всё хранится в этом браузере. <b>Бэкап</b> — скачать JSON, <b>Импорт</b> — восстановить или перенести на другой комп.</p>
     <div class="mrow" style="margin-top:16px"><button class="btn primary" id="mOk">Всё понятно</button></div>
@@ -2316,6 +2397,13 @@ document.addEventListener('click', async e => {
   }
   else if (a === 'pstats') showPlayerStats(el.dataset.name);
   else if (a === 'share') { if (t) shareFlow(t); }
+  else if (a === 'mute') {
+    soundOn = !soundOn;
+    localStorage.setItem('turnir_sound', soundOn ? '1' : '0');
+    if (soundOn) { tone(880, 0, 0.1, 0.1); }
+    renderTopbar();
+    toast(soundOn ? 'Звук включён' : 'Звук выключен', soundOn ? '🔊' : '🔇');
+  }
   else if (a === 'trename') {
     if (!t) return;
     const nn = await uiPrompt('Название турнира', t.name);
@@ -2437,7 +2525,7 @@ document.addEventListener('change', e => {
   }
   if (e.target.name === 'fmt') {
     const v = document.querySelector('input[name=fmt]:checked').value;
-    document.getElementById('optThird').classList.toggle('hidden', v === 'double');
+    document.getElementById('optThird').classList.toggle('hidden', v === 'double' || v === 'rr');
     document.getElementById('optGroups').classList.toggle('hidden', v !== 'groups');
     updatePCount();
   }
@@ -2453,6 +2541,8 @@ function updatePCount() {
   if (fmt === 'groups') {
     const G = +document.getElementById('cGroups').value;
     el.innerHTML = `Игроков: <b>${n}</b> → ${Math.min(G, n)} групп(ы) по ~${Math.ceil(n / Math.min(G, n))} чел.`;
+  } else if (fmt === 'rr') {
+    el.innerHTML = `Игроков: <b>${n}</b> → <b>${n * (n - 1) / 2}</b> матчей, каждый сыграет по ${n - 1}`;
   } else {
     const size = n < 2 ? 2 : nextPow2(n);
     const byes = size - n;
