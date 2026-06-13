@@ -129,6 +129,8 @@ textarea{resize:vertical;line-height:1.8}
 .hero .rule::after{background:linear-gradient(90deg,var(--gold-deep),transparent)}
 .hero .rule span{font-family:var(--disp);font-size:12px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
 .hero p{color:var(--muted);margin:0 auto;max-width:480px;font-size:14.5px;position:relative}
+.hero .byline{position:relative;margin-top:14px;font-family:var(--disp);font-size:11px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
+.hero .byline b{color:var(--gold2);font-weight:700;letter-spacing:.34em}
 .statrow{display:flex;justify-content:center;gap:14px;margin:8px 0 6px;flex-wrap:wrap}
 .stat{--c:10px;--bl:var(--line);display:flex;flex-direction:column;align-items:center;gap:1px;padding:12px 30px}
 .stat b{font-family:var(--disp);font-weight:600;font-size:22px;color:var(--gold2)}
@@ -1395,11 +1397,14 @@ function exportImage(t) {
   ctx.fillStyle = '#9C957F'; ctx.font = '600 11px Inter, Arial';
   ctx.fillText(`DUBAI PROJECT · ${FMT_LABEL[t.format]} · ${Object.keys(t.players).length} уч. · ${new Date().toLocaleDateString('ru-RU')}`, pad + 48, 60);
   const champ = podium(t).first;
+  ctx.textAlign = 'right';
   if (champ) {
-    ctx.textAlign = 'right'; ctx.fillStyle = '#F2DA8C'; ctx.font = '700 16px Oswald, Arial';
-    ctx.fillText(`🏆 ${pname(t, champ).toUpperCase()}`, W - pad, 44);
-    ctx.textAlign = 'left';
+    ctx.fillStyle = '#F2DA8C'; ctx.font = '700 16px Oswald, Arial';
+    ctx.fillText(`🏆 ${pname(t, champ).toUpperCase()}`, W - pad, 40);
   }
+  ctx.fillStyle = '#6E6450'; ctx.font = '600 11px Oswald, Arial';
+  ctx.fillText('BY EXZANTE', W - pad, champ ? 62 : 44);
+  ctx.textAlign = 'left';
   /* секции */
   let oy = headH;
   for (const d of data) {
@@ -2019,6 +2024,7 @@ function screenHome() {
       <div class="eyebrow">Dubai представляет</div>
       <h1>Dubai Project</h1>
       <div class="rule"><span>Турнирный менеджер</span></div>
+      <div class="byline">by <b>EXZANTE</b></div>
     </div>
     ${DB.tournaments.length ? `<div class="statrow">
       <div class="stat cut"><b>${DB.tournaments.length}</b><span>турниров</span></div>
