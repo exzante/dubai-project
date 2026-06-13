@@ -711,11 +711,15 @@ function resolveByes(t) {
     }
   }
 }
+function winsNeeded(t) { return Math.ceil((t.opts.bestOf || 1) / 2); }
 function setWinner(t, m, si) {
   if (m.winner || !isReady(m)) return;
+  const need = winsNeeded(t);
   let ws = m.slots[si].score == null ? null : m.slots[si].score;
   let os = m.slots[1 - si].score == null ? null : m.slots[1 - si].score;
-  if (ws == null && os == null) { ws = 1; os = 0; }
+  if (need > 1) {
+    ws = need; os = os || 0; if (os >= need) os = need - 1;
+  } else if (ws == null && os == null) { ws = 1; os = 0; }
   else { ws = ws || 0; os = os || 0; if (ws <= os) ws = os + 1; }
   m.slots[si].score = ws; m.slots[1 - si].score = os;
   m.winner = m.slots[si].pid;
@@ -1767,8 +1771,9 @@ function matchHtml(t, m, champ) {
     ? `<button class="mini" data-tip="Отменить результат (откатит и всё дальше)" data-action="undo" data-mid="${m.id}">↺</button>` : '';
   const status = ready ? `<span class="livedot"></span><span class="livetag">live</span>`
     : (m.winner && !m.auto ? `<span class="donetick">✔</span>` : '');
+  const bo = (t.opts.bestOf || 1) > 1 ? `<span style="color:var(--gold-deep)">BO${t.opts.bestOf}</span>` : '';
   return `<div class="match cut ${cls}" id="m_${m.id}" data-mid="${m.id}">
-    <div class="mhead">${status}<span>${esc(m.label || '')}</span><span class="sp"></span>${undo}</div>
+    <div class="mhead">${status}<span>${esc(m.label || '')}</span><span class="sp"></span>${bo}${undo}</div>
     ${slotHtml(t, m, 0)}${slotHtml(t, m, 1)}
   </div>`;
 }
@@ -1849,6 +1854,7 @@ function renderTopbar() {
     mid = `<span class="tname">${esc(t.name)}</span>
       ${canEdit(t) ? `<button class="mini" data-tip="Переименовать турнир" data-action="trename">✎</button>` : ''}
       <span class="badge">${FMT_ICO[t.format]} ${FMT_LABEL[t.format]}</span>
+      ${(t.opts.bestOf || 1) > 1 ? `<span class="badge" data-tip="Матчи до ${winsNeeded(t)} побед">BO${t.opts.bestOf}</span>` : ''}
       <span class="prog ${pr.pct === 100 ? 'full' : ''}" data-tip="Сыграно матчей: ${pr.played} из ${pr.total}">
         <span class="bar"><i style="width:${pr.pct}%"></i></span>${pr.pct}%</span>`;
   }
@@ -2057,6 +2063,14 @@ function screenCreate() {
         <button type="button" class="btn sm ghost" data-action="shufflecreate" data-tip="Случайный порядок — случайный посев">🎲 Перемешать</button>
       </div>
     </div>
+    <div class="frow inline">
+      <label class="chk" data-tip="До скольких побед идёт каждый матч">Формат матча:&nbsp;<select id="cBestOf">
+        <option value="1">1 игра</option>
+        <option value="3">BO3 — до 2 побед</option>
+        <option value="5">BO5 — до 3 побед</option>
+        <option value="7">BO7 — до 4 побед</option>
+      </select></label>
+    </div>
     <div class="frow inline" id="optThird">
       <label class="chk"><input type="checkbox" id="cThird" checked> Матч за 3-е место</label>
     </div>
@@ -2250,6 +2264,7 @@ function showHelp() {
     <h4>🎮 Судейство</h4>
     <p><b>Клик по имени игрока</b> — он победил и проходит дальше. Счёт необязателен: по умолчанию запишется 1:0.</p>
     <p><b>Счёт</b> (типа 2:1): кликай по цифре — <span class="key">ЛКМ</span> +1, <span class="key">ПКМ</span> −1.</p>
+    <p><b>Серии BO3/BO5/BO7</b> (выбираются при создании): матч идёт до 2/3/4 побед, и при достижении этого счёта победитель фиксируется автоматически. В «1 игра» победа ставится кликом по имени.</p>
     <p><b>↺ Отменить</b> — откатывает результат матча и всё, что от него зависело дальше по сетке.</p>
     <p><span class="key">Ctrl+Z</span> — откатить вообще любое последнее действие (результат, удаление игрока, решафл и т.п.), можно несколько раз подряд.</p>
     <h4>🔀 Перемещения и решафлы</h4>
@@ -2429,8 +2444,15 @@ document.addEventListener('click', async e => {
   else if (a === 'score') {
     if (!t) return;
     const m = t.matches[el.dataset.mid], si = +el.dataset.si;
-    if (!m.slots[si].pid || m.slots[si].pid === 'BYE' || m.auto) return;
+    if (!m.slots[si].pid || m.slots[si].pid === 'BYE' || m.auto || m.winner) return;
     m.slots[si].score = (m.slots[si].score || 0) + 1;
+    const need = winsNeeded(t);
+    if (need > 1 && isReady(m) && m.slots[si].score >= need) {
+      m.winner = m.slots[si].pid;
+      propagate(t, m);
+      resolveByes(t);
+      sndWin();
+    }
     save(); render();
   }
   else if (a === 'undo') {
@@ -2509,7 +2531,7 @@ document.addEventListener('contextmenu', e => {
     const t = curT();
     if (!t || !canEdit(t)) return;
     const m = t.matches[sc.dataset.mid], si = +sc.dataset.si;
-    if (!m.slots[si].pid || m.slots[si].pid === 'BYE' || m.auto) return;
+    if (!m.slots[si].pid || m.slots[si].pid === 'BYE' || m.auto || m.winner) return;
     m.slots[si].score = Math.max(0, (m.slots[si].score || 0) - 1);
     save(); render();
     return;
@@ -2591,6 +2613,7 @@ document.addEventListener('submit', e => {
   const opts = {
     thirdPlace: document.getElementById('cThird').checked,
     groupCount: +document.getElementById('cGroups').value,
+    bestOf: +document.getElementById('cBestOf').value,
     advance: 2
   };
   createTournament(name, fmt, names, opts);
